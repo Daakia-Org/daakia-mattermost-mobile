@@ -1884,6 +1884,8 @@ PODS:
     - React-CoreModules
     - React-RCTImage
     - React-RCTText
+  - RNBootSplash (6.3.11):
+    - React-Core
   - RNCClipboard (1.16.2):
     - React-Core
   - RNDateTimePicker (8.3.0):
@@ -2324,6 +2326,7 @@ DEPENDENCIES:
   - ReactNativeExceptionHandler (from `../node_modules/react-native-exception-handler`)
   - ReactNativeIncallManager (from `../node_modules/react-native-incall-manager`)
   - ReactNativeNavigation (from `../node_modules/react-native-navigation`)
+  - RNBootSplash (from `../node_modules/react-native-bootsplash`)
   - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
   - "RNDateTimePicker (from `../node_modules/@react-native-community/datetimepicker`)"
   - RNFileViewer (from `../node_modules/react-native-file-viewer`)
@@ -2553,6 +2556,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-incall-manager"
   ReactNativeNavigation:
     :path: "../node_modules/react-native-navigation"
+  RNBootSplash:
+    :path: "../node_modules/react-native-bootsplash"
   RNCClipboard:
     :path: "../node_modules/@react-native-clipboard/clipboard"
   RNDateTimePicker:
@@ -2700,6 +2705,7 @@ SPEC CHECKSUMS:
   ReactNativeExceptionHandler: a23922ca00122b050ae9412f960061791c232c47
   ReactNativeIncallManager: ef7b845e166f04cf8ddf433d8a23227b01cef87a
   ReactNativeNavigation: 6cef83673a08a51d426ff041c015da7c2a178a77
+  RNBootSplash: a00f96ed8c10f0665bac10529b2a67a78b4fdcea
   RNCClipboard: e1d17c9d093d8129ef50b39b63a17a0e8ccd0ade
   RNDateTimePicker: 29264364ea7b8cc0fb355b3843cf276a4ff78966
   RNFileViewer: 4b5d83358214347e4ab2d4ca8d5c1c90d869e251
