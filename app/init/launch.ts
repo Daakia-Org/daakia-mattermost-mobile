@@ -3,6 +3,7 @@
 
 import Emm from '@mattermost/react-native-emm';
 import {Alert, AppState, DeviceEventEmitter, Linking, Platform} from 'react-native';
+import BootSplash from 'react-native-bootsplash';
 import {Notifications} from 'react-native-notifications';
 
 import {removePost} from '@actions/local/post';
@@ -163,9 +164,11 @@ export const launchApp = async (props: LaunchProps) => {
 
     // if the config value is set and the onboarding has not been seeing yet, show the onboarding
     if (LocalConfig.ShowOnboarding && !onboardingViewed) {
+        BootSplash.hide({fade: true});
         return resetToOnboarding(props);
     }
 
+    BootSplash.hide({fade: true});
     return resetToSelectServer(props);
 };
 
@@ -218,10 +221,16 @@ export const launchToHome = async (props: LaunchProps) => {
 
     if (nTeams) {
         logInfo('Launch app in Home screen');
+
+        // Hide the splash screen when app is ready
+        BootSplash.hide({fade: true});
         return resetToHome(props);
     }
 
     logInfo('Launch app in Select Teams screen');
+
+    // Hide the splash screen when app is ready
+    BootSplash.hide({fade: true});
     return resetToTeams();
 };
 
