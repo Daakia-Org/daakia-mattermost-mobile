@@ -8,10 +8,10 @@ import {combineLatest, of as of$} from 'rxjs';
 import {switchMap, distinctUntilChanged} from 'rxjs/operators';
 
 import {Preferences} from '@constants';
-import {getAdvanceSettingPreferenceAsBool} from '@helpers/api/preference';
+import {getAdvanceSettingPreferenceAsBool, getDisplayNamePreferenceAsBool} from '@helpers/api/preference';
 import {observeMyChannel} from '@queries/servers/channel';
 import {queryPostsBetween, queryPostsInChannel} from '@queries/servers/post';
-import {queryAdvanceSettingsPreferences} from '@queries/servers/preference';
+import {queryAdvanceSettingsPreferences, queryDisplayNamePreferences} from '@queries/servers/preference';
 import {observeIsCRTEnabled} from '@queries/servers/thread';
 
 import ChannelPostList from './channel_post_list';
@@ -41,6 +41,13 @@ const enhanced = withObservables(['channelId'], ({database, channelId}: {channel
         shouldShowJoinLeaveMessages: queryAdvanceSettingsPreferences(database, Preferences.ADVANCED_FILTER_JOIN_LEAVE).
             observeWithColumns(['value']).pipe(
                 switchMap((preferences) => of$(getAdvanceSettingPreferenceAsBool(preferences, Preferences.ADVANCED_FILTER_JOIN_LEAVE, true))),
+                distinctUntilChanged(),
+            ),
+        isModernChatEnabled: queryDisplayNamePreferences(database).
+            observeWithColumns(['value']).pipe(
+                switchMap(
+                    (preferences) => of$(getDisplayNamePreferenceAsBool(preferences, Preferences.MODERN_CHAT_LAYOUT)),
+                ),
                 distinctUntilChanged(),
             ),
     };

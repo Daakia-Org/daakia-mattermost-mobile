@@ -36,6 +36,12 @@ const enhanced = withObservables([], ({database}: WithDatabaseArgs) => {
                     (preferences) => of$(getDisplayNamePreferenceAsBool(preferences, Preferences.USE_MILITARY_TIME)),
                 ),
             ),
+        isModernChatEnabled: queryDisplayNamePreferences(database).
+            observeWithColumns(['value']).pipe(
+                switchMap(
+                    (preferences) => of$(getDisplayNamePreferenceAsBool(preferences, Preferences.MODERN_CHAT_LAYOUT)),
+                ),
+            ),
         currentUser: observeCurrentUser(database),
     };
 });

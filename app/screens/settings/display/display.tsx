@@ -4,9 +4,11 @@
 import React, {useCallback, useMemo} from 'react';
 import {defineMessage, useIntl} from 'react-intl';
 
+import {savePreference} from '@actions/remote/preference';
 import SettingContainer from '@components/settings/container';
 import SettingItem from '@components/settings/item';
-import {Screens} from '@constants';
+import {Preferences, Screens} from '@constants';
+import {useServerUrl} from '@context/server';
 import {useTheme} from '@context/theme';
 import useAndroidHardwareBackHandler from '@hooks/android_back_handler';
 import {usePreventDoubleTap} from '@hooks/utils';
@@ -24,6 +26,17 @@ const CRT_FORMAT = [
     }),
     defineMessage({
         id: 'display_settings.crt.off',
+        defaultMessage: 'Off',
+    }),
+];
+
+const MODERN_CHAT_FORMAT = [
+    defineMessage({
+        id: 'display_settings.modern_chat.on',
+        defaultMessage: 'On',
+    }),
+    defineMessage({
+        id: 'display_settings.modern_chat.off',
         defaultMessage: 'Off',
     }),
 ];
@@ -57,12 +70,14 @@ type DisplayProps = {
     isCRTEnabled: boolean;
     isCRTSwitchEnabled: boolean;
     isThemeSwitchingEnabled: boolean;
+    isModernChatEnabled: boolean;
 }
 
-const Display = ({componentId, currentUser, hasMilitaryTimeFormat, isCRTEnabled, isCRTSwitchEnabled, isThemeSwitchingEnabled}: DisplayProps) => {
+const Display = ({componentId, currentUser, hasMilitaryTimeFormat, isCRTEnabled, isCRTSwitchEnabled, isThemeSwitchingEnabled, isModernChatEnabled}: DisplayProps) => {
     const intl = useIntl();
+    const serverUrl = useServerUrl();
     const theme = useTheme();
-    const timezone = useMemo(() => getUserTimezoneProps(currentUser), [currentUser?.timezone]);
+    const timezone = useMemo(() => getUserTimezoneProps(currentUser), [currentUser]);
 
     const goToThemeSettings = usePreventDoubleTap(useCallback(() => {
         const screen = Screens.SETTINGS_DISPLAY_THEME;
@@ -87,6 +102,19 @@ const Display = ({componentId, currentUser, hasMilitaryTimeFormat, isCRTEnabled,
         const title = intl.formatMessage({id: 'display_settings.crt', defaultMessage: 'Collapsed Reply Threads'});
         gotoSettingsScreen(screen, title);
     }, [intl]));
+
+    const goToModernChatSettings = usePreventDoubleTap(useCallback(async () => {
+        const newValue = !isModernChatEnabled;
+
+        if (currentUser?.id) {
+            await savePreference(serverUrl, [{
+                user_id: currentUser.id,
+                category: Preferences.CATEGORIES.DISPLAY_SETTINGS,
+                name: Preferences.MODERN_CHAT_LAYOUT,
+                value: newValue.toString(),
+            }]);
+        }
+    }, [isModernChatEnabled, currentUser?.id, serverUrl]));
 
     const close = useCallback(() => {
         popTopScreen(componentId);
@@ -124,6 +152,12 @@ const Display = ({componentId, currentUser, hasMilitaryTimeFormat, isCRTEnabled,
                     testID='display_settings.crt.option'
                 />
             )}
+            <SettingItem
+                optionName='modern_chat'
+                onPress={goToModernChatSettings}
+                info={intl.formatMessage(isModernChatEnabled ? MODERN_CHAT_FORMAT[0] : MODERN_CHAT_FORMAT[1])}
+                testID='display_settings.modern_chat.option'
+            />
         </SettingContainer>
     );
 };

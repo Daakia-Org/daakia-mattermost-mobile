@@ -25,6 +25,7 @@ type Props = {
     channelId: string;
     contentContainerStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
     isCRTEnabled: boolean;
+    isModernChatEnabled: boolean;
     lastViewedAt: number;
     nativeID: string;
     posts: PostModel[];
@@ -38,7 +39,7 @@ const styles = StyleSheet.create({
 });
 
 const ChannelPostList = ({
-    channelId, contentContainerStyle, isCRTEnabled,
+    channelId, contentContainerStyle, isCRTEnabled, isModernChatEnabled,
     lastViewedAt, nativeID, posts, shouldShowJoinLeaveMessages,
 }: Props) => {
     const appState = useAppState();
@@ -119,6 +120,7 @@ const ChannelPostList = ({
             channelId={channelId}
             contentContainerStyle={[contentContainerStyle, !isCRTEnabled && styles.containerStyle]}
             isCRTEnabled={isCRTEnabled}
+            isModernChatEnabled={isModernChatEnabled}
             footer={intro}
             lastViewedAt={lastViewedAt}
             location={Screens.CHANNEL}

@@ -53,6 +53,7 @@ type PostProps = {
     isCRTEnabled?: boolean;
     isEphemeral: boolean;
     isFirstReply?: boolean;
+    isModernChatEnabled?: boolean;
     isPostAcknowledgementEnabled?: boolean;
     isSaved?: boolean;
     isLastReply?: boolean;
@@ -126,6 +127,7 @@ const Post = ({
     isConsecutivePost,
     isEphemeral,
     isFirstReply,
+    isModernChatEnabled = false,
     isSaved,
     isLastReply,
     isPostAcknowledgementEnabled,
@@ -251,7 +253,7 @@ const Post = ({
                 clearTimeout(t);
             }
         };
-    }, [post.id]);
+    }, [post.id, isFailed, post.pendingPostId, post.updateAt]);
 
     useEffect(() => {
         if (!isLastPost) {
@@ -264,13 +266,17 @@ const Post = ({
 
         PerformanceMetricsManager.finishLoad(location === 'Thread' ? 'THREAD' : 'CHANNEL', serverUrl);
         PerformanceMetricsManager.endMetric('mobile_channel_switch', serverUrl);
-    }, []);
+    }, [isLastPost, location, serverUrl]);
 
     const highlightSaved = isSaved && !skipSavedHeader;
     const hightlightPinned = post.isPinned && !skipPinnedHeader;
     const itemTestID = `${testID}.${post.id}`;
     const rightColumnStyle: StyleProp<ViewStyle> = [styles.rightColumn, (Boolean(post.rootId) && isLastReply && styles.rightColumnPadding)];
     const pendingPostStyle: StyleProp<ViewStyle> | undefined = isPendingOrFailed ? styles.pendingPost : undefined;
+
+    // Modern Chat conditional flag (no visual changes yet)
+    const isOwnMessage = post.userId === currentUser?.id;
+    const isModernLayout = Boolean(isModernChatEnabled && isOwnMessage);
 
     let highlightedStyle: StyleProp<ViewStyle>;
     if (highlight) {
@@ -398,6 +404,43 @@ const Post = ({
                 <UnreadDot/>
             );
         }
+    }
+
+    if (isModernLayout) {
+        return (
+            <View
+                testID={testID}
+                style={[styles.postStyle, style, highlightedStyle]}
+            >
+                <TouchableHighlight
+                    testID={itemTestID}
+                    onPress={handlePress}
+                    onLongPress={showPostOptions}
+                    delayLongPress={200}
+                    underlayColor={changeOpacity(theme.centerChannelColor, 0.1)}
+                    style={styles.postContent}
+                >
+                    <>
+                        <PreHeader
+                            isConsecutivePost={isConsecutivePost}
+                            isSaved={isSaved}
+                            isPinned={post.isPinned}
+                            skipSavedHeader={skipSavedHeader}
+                            skipPinnedHeader={skipPinnedHeader}
+                        />
+                        <View style={[styles.container, consecutiveStyle]}>
+                            {postAvatar}
+                            <View style={rightColumnStyle}>
+                                {header}
+                                {body}
+                                {footer}
+                            </View>
+                            {unreadDot}
+                        </View>
+                    </>
+                </TouchableHighlight>
+            </View>
+        );
     }
 
     return (

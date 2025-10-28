@@ -61,6 +61,7 @@ const Preferences = {
     ADVANCED_FILTER_JOIN_LEAVE: 'join_leave',
     ADVANCED_CODE_BLOCK_ON_CTRL_ENTER: 'code_block_ctrl_enter',
     ADVANCED_SEND_ON_CTRL_ENTER: 'send_on_ctrl_enter',
+    MODERN_CHAT_LAYOUT: 'modern_chat_layout',
     THEMES: {
         denim: {
             type: 'Denim',

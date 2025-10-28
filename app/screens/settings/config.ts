@@ -98,6 +98,10 @@ const messages = defineMessages({
         defaultMessage: 'Timezone',
         id: 'mobile.display_settings.timezone',
     },
+    modern_chat: {
+        defaultMessage: 'Modern Chat Layout',
+        id: 'mobile.display_settings.modern_chat',
+    },
 });
 
 export const SettingOptionConfig: Record<string, SettingConfigDetails> = {
@@ -197,6 +201,12 @@ export const DisplayOptionConfig: Record<string, SettingConfigDetails> = {
         i18nId: messages.timezone.id,
         icon: 'globe',
         testID: messages.timezone.id,
+    },
+    modern_chat: {
+        defaultMessage: messages.modern_chat.defaultMessage,
+        i18nId: messages.modern_chat.id,
+        icon: 'message-text-outline',
+        testID: messages.modern_chat.id,
     },
 };
 

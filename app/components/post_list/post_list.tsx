@@ -39,6 +39,7 @@ type Props = {
     highlightedId?: PostModel['id'];
     highlightPinnedOrSaved?: boolean;
     isCRTEnabled?: boolean;
+    isModernChatEnabled?: boolean;
     isPostAcknowledgementEnabled?: boolean;
     lastViewedAt: number;
     location: AvailableScreens;
@@ -93,6 +94,7 @@ const PostList = ({
     highlightedId,
     highlightPinnedOrSaved = true,
     isCRTEnabled,
+    isModernChatEnabled = false,
     isPostAcknowledgementEnabled,
     lastViewedAt,
     location,
@@ -302,6 +304,7 @@ const PostList = ({
                     appsEnabled,
                     customEmojiNames,
                     isCRTEnabled,
+                    isModernChatEnabled,
                     isPostAcknowledgementEnabled,
                     highlight: highlightedId === post.id,
                     highlightPinnedOrSaved,
@@ -324,7 +327,7 @@ const PostList = ({
                 );
             }
         }
-    }, [appsEnabled, currentTimezone, currentUsername, customEmojiNames, highlightPinnedOrSaved, highlightedId, isCRTEnabled, isPostAcknowledgementEnabled, location, rootId, shouldRenderReplyButton, shouldShowJoinLeaveMessages, testID, theme]);
+    }, [appsEnabled, currentTimezone, currentUsername, customEmojiNames, highlightPinnedOrSaved, highlightedId, isCRTEnabled, isModernChatEnabled, isPostAcknowledgementEnabled, location, rootId, shouldRenderReplyButton, shouldShowJoinLeaveMessages, testID, theme]);
 
     useEffect(() => {
         const t = setTimeout(() => {
