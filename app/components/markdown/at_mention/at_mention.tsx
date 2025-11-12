@@ -26,6 +26,7 @@ type AtMentionProps = {
     channelId?: string;
     currentUserId: string;
     disableAtChannelMentionHighlight?: boolean;
+    isMyPost?: boolean;
     isSearchResult?: boolean;
     location: AvailableScreens;
     mentionKeys?: Array<{key: string }>;
@@ -47,6 +48,7 @@ const AtMention = ({
     channelId,
     currentUserId,
     disableAtChannelMentionHighlight,
+    isMyPost,
     isSearchResult,
     location,
     mentionName,
@@ -208,22 +210,14 @@ const AtMention = ({
     }
 
     if (isMention) {
-        // Only apply underline, inherit text color from parent (same as post text)
+        // Apply yellow color for all mentions (no underline)
         mentionTextStyle.push(mentionStyle);
-        // Ensure color matches the base text color (no special mention color)
-        if (styleText) {
-            const flattenedStyle = StyleSheet.flatten(styleText);
-            if (flattenedStyle?.color) {
-                mentionTextStyle.push({color: flattenedStyle.color});
-            }
-        }
-    }
-
-    // Add background color when current user is mentioned (highlighted)
-    if (highlighted) {
+        // Use different yellow colors based on post side:
+        // Left side (other posts): #CC9900 (Darker yellow / Golden)
+        // Right side (my posts): #FFFF99 (Very light bright yellow)
         mentionTextStyle.push({
-            backgroundColor: theme.mentionHighlightBg,
-            color: theme.mentionHighlightLink,
+            color: isMyPost ? '#FFFF99' : '#CC9900', // Different yellow colors for my posts vs other posts
+            textDecorationLine: 'none', // Explicitly remove underline
         });
     }
 

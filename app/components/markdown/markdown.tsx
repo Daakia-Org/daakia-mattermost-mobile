@@ -61,6 +61,7 @@ type MarkdownProps = {
     highlightKeys?: HighlightWithoutNotificationKey[];
     imagesMetadata?: Record<string, PostImage | undefined>;
     isEdited?: boolean;
+    isMyPost?: boolean;
     isReplyPost?: boolean;
     isSearchResult?: boolean;
     layoutHeight?: number;
@@ -158,6 +159,7 @@ const Markdown = ({
     maxNodes,
     imagesMetadata,
     isEdited,
+    isMyPost,
     isReplyPost,
     isSearchResult,
     layoutHeight,
@@ -201,6 +203,17 @@ const Markdown = ({
             styles = computeTextStyle(textStyles, baseTextStyle, context);
         }
 
+        // Override link color to white for "my post" side and add underline to all links
+        if (context.includes('link')) {
+            const linkOverrides: TextStyle = {
+                textDecorationLine: 'underline',
+            };
+            if (isMyPost) {
+                linkOverrides.color = theme.buttonColor;
+            }
+            styles = [styles, linkOverrides];
+        }
+
         // Removed mention highlight background - mentions only use underline, same text color as post
 
         return (
@@ -212,7 +225,7 @@ const Markdown = ({
                 {literal}
             </Text>
         );
-    }, [baseTextStyle, disableHeading, managedConfig.copyAndPasteProtection, textStyles]);
+    }, [baseTextStyle, disableHeading, isMyPost, managedConfig.copyAndPasteProtection, textStyles, theme.buttonColor]);
 
     const renderAtMention = useCallback(({context, mentionName}: MarkdownAtMentionRenderer) => {
         if (disableAtMentions) {
@@ -227,6 +240,7 @@ const Markdown = ({
                 disableAtChannelMentionHighlight={disableAtChannelMentionHighlight}
                 mentionStyle={[textStyles.mention, {fontSize, fontWeight, fontFamily}]}
                 textStyle={[computedStyles, style.atMentionOpacity]}
+                isMyPost={isMyPost}
                 isSearchResult={isSearchResult}
                 location={location}
                 mentionName={mentionName}
@@ -234,7 +248,7 @@ const Markdown = ({
                 theme={theme}
             />
         );
-    }, [baseTextStyle, channelId, disableAtChannelMentionHighlight, disableAtMentions, isSearchResult, location, mentionKeys, renderText, style.atMentionOpacity, textStyles, theme]);
+    }, [baseTextStyle, channelId, disableAtChannelMentionHighlight, disableAtMentions, isMyPost, isSearchResult, location, mentionKeys, renderText, style.atMentionOpacity, textStyles, theme]);
 
     const renderBlockQuote = useCallback(({children, ...otherProps}: any) => {
         if (disableBlockQuote) {
@@ -466,13 +480,14 @@ const Markdown = ({
         return (
             <MarkdownLink
                 href={href}
+                isMyPost={isMyPost}
                 onLinkLongPress={onLinkLongPress}
                 theme={theme}
             >
                 {children}
             </MarkdownLink>
         );
-    }, [isUnsafeLinksPost, onLinkLongPress, renderText, theme]);
+    }, [isMyPost, isUnsafeLinksPost, onLinkLongPress, renderText, theme]);
 
     const renderList = useCallback(({children, start, tight, type}: any) => {
         return (
