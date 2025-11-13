@@ -135,9 +135,9 @@ export async function editServer(theme: Theme, server: ServersModel) {
 export async function alertServerLogout(displayName: string, onPress: () => void, intl: IntlShape) {
     Alert.alert(
         intl.formatMessage({
-            id: 'server.logout.alert_title',
-            defaultMessage: 'Are you sure you want to log out of {displayName}?',
-        }, {displayName}),
+            id: 'server.logout.alert_title_no_server',
+            defaultMessage: 'Are you sure you want to log out?',
+        }),
         intl.formatMessage({
             id: 'server.logout.alert_description',
             defaultMessage: 'All associated data will be removed',
