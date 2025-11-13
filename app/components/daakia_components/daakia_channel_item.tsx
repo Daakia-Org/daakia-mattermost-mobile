@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import {withDatabase, withObservables} from '@nozbe/watermelondb/react';
-import React from 'react';
+import React, {useMemo} from 'react';
+import {useIntl} from 'react-intl';
 import {Text, TouchableOpacity, View} from 'react-native';
 import {of as of$} from 'rxjs';
 import {distinctUntilChanged, map, switchMap} from 'rxjs/operators';
@@ -18,6 +19,7 @@ import {getDisplayNamePreferenceAsBool} from '@helpers/api/preference';
 import {queryDisplayNamePreferences} from '@queries/servers/preference';
 import {observeCurrentUserId} from '@queries/servers/system';
 import {observeUser, queryUsersByUsername} from '@queries/servers/user';
+import {isToday, isYesterday, isSameYear} from '@utils/datetime';
 import {changeOpacity, makeStyleSheetFromTheme} from '@utils/theme';
 import {getFormattedTime} from '@utils/time';
 import {getDeviceTimezone} from '@utils/timezone';
@@ -49,8 +51,6 @@ const getStyles = makeStyleSheetFromTheme((theme: Theme) => ({
         flexDirection: 'row',
         paddingHorizontal: 16,
         paddingVertical: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: changeOpacity(theme.centerChannelColor, 0.08),
         backgroundColor: theme.centerChannelBg,
     },
     containerActive: {
@@ -161,6 +161,7 @@ const extractMentions = (text: string): string[] => {
 
 const DaakiaChannelItem = ({channel, isUnread, onPress, currentUserId, lastPost, isMilitaryTime, lastPostSender, locale, teammateDisplayNameSetting, hasCall, teammateId, mentionUsersMap}: Props) => {
     const theme = useTheme();
+    const intl = useIntl();
     const styles = getStyles(theme);
 
     let displayName = channel.displayName || channel.name || 'Unknown Channel';
@@ -174,8 +175,8 @@ const DaakiaChannelItem = ({channel, isUnread, onPress, currentUserId, lastPost,
         displayName = `${displayName} (you)`;
     }
 
-    // Get last message preview with sender name for channels
-    const getLastMessagePreview = () => {
+    // Get last message preview with sender name for channels (optimized with useMemo)
+    const lastMessagePreview = useMemo(() => {
         if (!lastPost) {
             return 'No messages yet...';
         }
@@ -228,19 +229,33 @@ const DaakiaChannelItem = ({channel, isUnread, onPress, currentUserId, lastPost,
         }
 
         return messageText;
-    };
+    }, [lastPost, mentionUsersMap, locale, teammateDisplayNameSetting, channelType, currentUserId, lastPostSender]);
 
     // Format time with user's clock preference (12hr or 24hr) and device timezone
-    const getTimeDisplay = () => {
+    // Shows: time for today, "Yesterday" for yesterday, date for older messages (optimized with useMemo)
+    const timeDisplay = useMemo(() => {
         if (!lastPost) {
             return '';
         }
 
+        const postDate = new Date(lastPost.createAt);
         const deviceTimezone = getDeviceTimezone();
-        const time = getFormattedTime(isMilitaryTime, deviceTimezone, lastPost.createAt);
 
-        return time;
-    };
+        if (isToday(postDate)) {
+            // Show time only for today
+            return getFormattedTime(isMilitaryTime, deviceTimezone, lastPost.createAt);
+        }
+        if (isYesterday(postDate)) {
+            // Show "Yesterday" for yesterday
+            return intl.formatMessage({id: 'date_separator.yesterday', defaultMessage: 'Yesterday'});
+        }
+
+        // Show date for older messages
+        if (isSameYear(postDate, new Date())) {
+            return new Intl.DateTimeFormat(locale, {month: 'short', day: 'numeric'}).format(postDate);
+        }
+        return new Intl.DateTimeFormat(locale, {dateStyle: 'medium'}).format(postDate);
+    }, [lastPost, isMilitaryTime, locale, intl]);
 
     return (
         <TouchableOpacity
@@ -296,7 +311,7 @@ const DaakiaChannelItem = ({channel, isUnread, onPress, currentUserId, lastPost,
                     }
                     <View style={styles.row}>
                         <Text style={styles.time}>
-                            {getTimeDisplay()}
+                            {timeDisplay}
                         </Text>
                         {isUnread && <View style={styles.unreadBadge}/>}
                     </View>
@@ -306,7 +321,7 @@ const DaakiaChannelItem = ({channel, isUnread, onPress, currentUserId, lastPost,
                     style={styles.lastMessage}
                     numberOfLines={1}
                 >
-                    {getLastMessagePreview()}
+                    {lastMessagePreview}
                 </Text>
             </View>
         </TouchableOpacity>
