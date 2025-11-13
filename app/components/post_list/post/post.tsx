@@ -338,18 +338,6 @@ const Post = ({
         }
     }
 
-    // TEMP LOGS: dump post data to inspect plugin payloads and authors
-    // eslint-disable-next-line no-console
-    console.log('[POST_RENDER]', {
-        id: post.id,
-        channelId: post.channelId,
-        userId: post.userId,
-        type: post.type,
-        message: post.message,
-        props: post.props,
-        metadata: post.metadata,
-    });
-
     // Example filter: plugin/webhook/app-originated posts
     const hasAppId = Boolean(post.props && ('app_id' in post.props));
     if (post.props?.from_webhook || post.props?.attachments || hasAppId) {
