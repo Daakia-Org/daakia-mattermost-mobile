@@ -21,7 +21,7 @@ import DatabaseManager from '@database/manager';
 import {useIsTablet} from '@hooks/device';
 import {useDefaultHeaderHeight} from '@hooks/header';
 import {usePreventDoubleTap} from '@hooks/utils';
-import {fetchPlaybookRunsForChannel} from '@playbooks/actions/remote/runs';
+import {createPlaybookRun, fetchPlaybookRunsForChannel} from '@playbooks/actions/remote/runs';
 import {goToPlaybookRun, goToPlaybookRuns} from '@playbooks/screens/navigation';
 import {getCurrentUser} from '@queries/servers/user';
 import {BOTTOM_SHEET_ANDROID_OFFSET} from '@screens/bottom_sheet';
@@ -29,7 +29,10 @@ import ChannelBanner from '@screens/channel/header/channel_banner';
 import {bottomSheet, popTopScreen, showModal} from '@screens/navigation';
 import EphemeralStore from '@store/ephemeral_store';
 import {isTypeDMorGM} from '@utils/channel';
+import {getFullErrorMessage} from '@utils/errors';
 import {bottomSheetSnapPoint} from '@utils/helpers';
+import {logDebug} from '@utils/log';
+import {showPlaybookErrorSnackbar} from '@utils/snack_bar';
 import {changeOpacity, makeStyleSheetFromTheme} from '@utils/theme';
 import {typography} from '@utils/typography';
 
@@ -43,6 +46,7 @@ type ChannelProps = {
     canAddBookmarks: boolean;
     channelId: string;
     channelType: ChannelType;
+    currentUserId: string;
     customStatus?: UserCustomStatus;
     isBookmarksEnabled: boolean;
     isCustomStatusEnabled: boolean;
@@ -96,6 +100,7 @@ const ChannelHeader = ({
     channelId,
     channelType,
     componentId,
+    currentUserId,
     customStatus,
     displayName,
     hasBookmarks,
@@ -217,13 +222,42 @@ const ChannelHeader = ({
         });
     }, [isTablet, callsAvailable, isDMorGM, hasPlaybookRuns, theme, onTitlePress, channelId]);
 
+    const handleCreateQuickRun = useCallback(async () => {
+        const runName = `${displayName} Checklist`;
+        const res = await createPlaybookRun(
+            serverUrl,
+            '', // empty playbook_id
+            currentUserId,
+            teamId,
+            runName,
+            '', // empty description
+            channelId,
+        );
+
+        if (res.error || !res.data) {
+            logDebug('error on createPlaybookRun', getFullErrorMessage(res.error));
+            showPlaybookErrorSnackbar();
+            return;
+        }
+
+        // Fetch updated runs and navigate to the new run
+        await fetchPlaybookRunsForChannel(serverUrl, channelId);
+        await goToPlaybookRun(intl, res.data.id);
+    }, [serverUrl, currentUserId, teamId, displayName, channelId, intl]);
+
     const openPlaybooksRuns = useCallback(() => {
+        // If no active runs, create a new one instead
+        if (playbooksActiveRuns === 0) {
+            handleCreateQuickRun();
+            return;
+        }
+
         if (activeRunId) {
             goToPlaybookRun(intl, activeRunId);
             return;
         }
         goToPlaybookRuns(intl, channelId, displayName);
-    }, [activeRunId, channelId, displayName, intl]);
+    }, [playbooksActiveRuns, handleCreateQuickRun, activeRunId, channelId, displayName, intl]);
 
     const startDaakiaMeeting = useCallback(async () => {
         try {
@@ -245,12 +279,12 @@ const ChannelHeader = ({
 
     const rightButtons = useMemo(() => {
         const buttons: HeaderRightButton[] = [];
-        if (playbooksActiveRuns && !isDMorGM) {
+        if (isPlaybooksEnabled && !isDMorGM) {
             buttons.push({
                 iconName: 'product-playbooks',
                 onPress: openPlaybooksRuns,
                 buttonType: 'opacity',
-                count: playbooksActiveRuns,
+                count: playbooksActiveRuns || '+',
             });
         }
 
@@ -279,7 +313,7 @@ const ChannelHeader = ({
         });
 
         return buttons;
-    }, [playbooksActiveRuns, isDMorGM, onChannelQuickAction, openPlaybooksRuns, startDaakiaMeeting]);
+    }, [isPlaybooksEnabled, playbooksActiveRuns, isDMorGM, onChannelQuickAction, openPlaybooksRuns, startDaakiaMeeting]);
 
     let title = displayName;
     if (isOwnDirectMessage) {
