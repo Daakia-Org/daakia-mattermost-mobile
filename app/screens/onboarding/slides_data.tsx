@@ -37,6 +37,7 @@ const useSlidesData = () => {
     const daakiaLogoSvg = (
         <DaakiaLogoSvg
             styles={styles.image}
+            theme={theme}
         />
     );
     const teamCommunicationSvg = (
