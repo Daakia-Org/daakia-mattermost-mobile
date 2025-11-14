@@ -11,8 +11,8 @@ type Props = {
 const DaakiaLogoSvg = ({styles}: Props) => {
     return (
         <Image
-            source={require('../../../assets/daakiaDlogoCircle.png')}
-            style={[styles, {width: 120, height: 120, alignSelf: 'center'}]}
+            source={require('../../../assets/konnectLogo.png')}
+            style={[styles, {width: 340, height: 340, alignSelf: 'center'}]}
             resizeMode='contain'
         />
     );

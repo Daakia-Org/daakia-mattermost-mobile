@@ -24,7 +24,7 @@ const getStyleSheet = makeStyleSheetFromTheme((theme: Theme) => ({
     image: {
         justifyContent: 'center',
         maxHeight: 180,
-        marginTop: 48,
+        marginTop: 24,
     },
     title: {
         color: theme.centerChannelColor,
@@ -39,8 +39,12 @@ const getStyleSheet = makeStyleSheetFromTheme((theme: Theme) => ({
     },
     fontFirstTitle: {
         ...typography('Heading', 1000, 'SemiBold'),
-        paddingTop: 48,
+        paddingTop: 24,
         letterSpacing: -1,
+        marginBottom: 16,
+    },
+    fontFirstDescription: {
+        marginBottom: 8,
     },
     widthLastSlide: {
         paddingHorizontal: 50,
@@ -55,6 +59,7 @@ const getStyleSheet = makeStyleSheetFromTheme((theme: Theme) => ({
         color: changeOpacity(theme.centerChannelColor, 0.64),
         ...typography('Body', 200, 'Regular'),
         maxWidth: ONBOARDING_CONTENT_MAX_WIDTH,
+        marginBottom: 8,
     },
     itemContainer: {
         flex: 1,
@@ -198,6 +203,7 @@ const SlideItem = ({theme, item, scrollX, index, lastSlideIndex}: Props) => {
                 <Animated.Text
                     style={[
                         styles.description,
+                        (index === FIRST_SLIDE ? styles.fontFirstDescription : undefined),
                         translateDescription,
                         opacity,
                         (index === FIRST_SLIDE && firstLoad ? styles.firstSlideInitialPosition : undefined),
