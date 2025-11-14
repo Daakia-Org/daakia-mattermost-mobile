@@ -54,7 +54,7 @@ const useSlidesData = () => {
 
     const slidesData: OnboardingItem[] = [
         {
-            title: intl.formatMessage({id: 'onboarding.welcome', defaultMessage: 'Welcome to Daakia Chat'}),
+            title: intl.formatMessage({id: 'onboarding.welcome', defaultMessage: 'Welcome to Konnect by Daakia'}),
             description: intl.formatMessage({id: 'onboaring.welcome_description', defaultMessage: 'Experience seamless team communication with enterprise-grade security and powerful collaboration tools designed for modern teams.'}),
             image: daakiaLogoSvg,
         },

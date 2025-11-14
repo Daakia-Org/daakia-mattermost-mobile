@@ -392,7 +392,7 @@ platform :ios do
   lane :unsigned do
     UI.success('Building unsigned iOS app')
 
-    ENV['APP_NAME'] = 'Daakia Chat'
+    ENV['APP_NAME'] = 'Konnect'
     ENV['REPLACE_ASSETS'] = 'true'
     ENV['BUILD_FOR_RELEASE'] = 'true'
     ENV['APP_SCHEME'] = 'daakia'
@@ -426,7 +426,7 @@ platform :ios do
 
   lane :update_identifiers do
     # Set the name for the app and share extension
-    app_name =  ENV['APP_NAME'] || 'Daakia Chat'
+    app_name =  ENV['APP_NAME'] || 'Konnect'
     update_info_plist(
         xcodeproj: './ios/Mattermost.xcodeproj',
         plist_path: 'Mattermost/Info.plist',
@@ -655,7 +655,7 @@ platform :ios do
   end
 
   def build_ios
-    app_name =  ENV['APP_NAME'] || 'Daakia Chat'
+    app_name =  ENV['APP_NAME'] || 'Konnect'
     app_name_sub = app_name.gsub(" ", "_")
     config_mode = ENV['BUILD_FOR_RELEASE'] == 'true' ? 'Release' : 'Debug'
     method = ENV['IOS_BUILD_EXPORT_METHOD'].nil? || ENV['IOS_BUILD_EXPORT_METHOD'].empty? ? 'ad-hoc' : ENV['IOS_BUILD_EXPORT_METHOD']
@@ -686,7 +686,7 @@ platform :ios do
     root_dir = Dir[File.expand_path('..')].first
     ios_build_dir = "#{root_dir}/ios/Build/Products"
 
-    ENV['APP_NAME'] = 'Daakia Chat'
+    ENV['APP_NAME'] = 'Konnect'
     ENV['REPLACE_ASSETS'] = 'true'
     ENV['BUILD_FOR_RELEASE'] = 'true'
     ENV['APP_SCHEME'] = 'daakia'
