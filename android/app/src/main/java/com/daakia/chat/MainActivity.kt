@@ -21,7 +21,7 @@ class MainActivity : NavigationActivity() {
      * Returns the name of the main component registered from JavaScript. This is used to schedule
      * rendering of the component.
      */
-    override fun getMainComponentName(): String = "Mattermost"
+    override fun getMainComponentName(): String = "Konnect"
 
     /**
      * Returns the instance of the [ReactActivityDelegate]. We use [DefaultReactActivityDelegate]
