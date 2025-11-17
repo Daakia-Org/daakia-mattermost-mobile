@@ -12,6 +12,7 @@ import PostDraft from '@components/post_draft';
 import ScheduledPostIndicator from '@components/scheduled_post_indicator';
 import {Screens} from '@constants';
 import {ExtraKeyboardProvider} from '@context/extra_keyboard';
+import {useTheme} from '@context/theme';
 import useAndroidHardwareBackHandler from '@hooks/android_back_handler';
 import {useChannelSwitch} from '@hooks/channel_switch';
 import {useIsTablet} from '@hooks/device';
@@ -72,6 +73,7 @@ const Channel = ({
     scheduledPostCount,
 }: ChannelProps) => {
     useGMasDMNotice(currentUserId, channelType, dismissedGMasDMNotice, hasGMasDMFeature);
+    const theme = useTheme();
     const isTablet = useIsTablet();
     const insets = useSafeAreaInsets();
     const [shouldRenderPosts, setShouldRenderPosts] = useState(false);
@@ -118,7 +120,7 @@ const Channel = ({
     return (
         <FreezeScreen>
             <SafeAreaView
-                style={styles.flex}
+                style={[styles.flex, {backgroundColor: theme.centerChannelBg}]}
                 mode='margin'
                 edges={edges}
                 testID='channel.screen'
