@@ -3,16 +3,23 @@
 
 import * as React from 'react';
 import {Image, type StyleProp, type ImageStyle} from 'react-native';
+import tinyColor from 'tinycolor2';
 
 type Props = {
     styles: StyleProp<ImageStyle>;
+    theme: Theme;
 };
 
-const DaakiaLogoSvg = ({styles}: Props) => {
+const DaakiaLogoSvg = ({styles, theme}: Props) => {
+    const isLightTheme = tinyColor(theme.centerChannelBg).isLight();
+    const logoSource = isLightTheme
+        ? require('../../../assets/konnectLogo.png')
+        : require('../../../assets/konnectLogolight.png');
+
     return (
         <Image
-            source={require('../../../assets/daakiaDlogoCircle.png')}
-            style={[styles, {width: 120, height: 120, alignSelf: 'center'}]}
+            source={logoSource}
+            style={[styles, {width: 180, height: 180, alignSelf: 'center'}]}
             resizeMode='contain'
         />
     );

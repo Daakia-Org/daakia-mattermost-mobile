@@ -1,15 +1,14 @@
 {
     "AuthUrlScheme": "daakia://",
     "AuthUrlSchemeDev": "daakia-dev://",
-    "DefaultServerUrl": "https://chat.daakia.ai",
+    "DefaultServerUrl": "https://konnect.daakia.ai",
     "DefaultServerName": "Daakia",
     "TestServerUrl": "http://localhost:8065",
     "AutoSelectServerUrl": true,
 
-    "WebsiteURL": "https://chat.daakia.ai",
-    "ServerNoticeURL": "https://www.daakia.co.in/",
-    "MobileNoticeURL": "https://www.daakia.co.in/",
-
+    "WebsiteURL": "https://konnect.daakia.ai",
+    "ServerNoticeURL": "https://konnect.daakia.ai",
+    "MobileNoticeURL": "https://konnect.daakia.ai",
     "RudderApiKey": "",
 
     "SentryEnabled": false,
