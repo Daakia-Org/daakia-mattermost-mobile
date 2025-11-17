@@ -126,7 +126,7 @@ android {
             if (project.hasProperty('daakia_release.keystore')) {
                 storeFile file('daakia_release.keystore')
                 storePassword 'QazWsxEdc!@'
-                keyAlias 'daakia'
+                keyAlias 'daakia_konnect'
                 keyPassword 'QazWsxEdc!@'
             }
         }
