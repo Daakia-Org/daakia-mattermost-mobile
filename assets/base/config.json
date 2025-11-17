@@ -1,14 +1,14 @@
 {
     "AuthUrlScheme": "daakia://",
     "AuthUrlSchemeDev": "daakia-dev://",
-    "DefaultServerUrl": "https://konnect-staging.daakia.ai/",
+    "DefaultServerUrl": "https://konnect.daakia.ai",
     "DefaultServerName": "Daakia",
     "TestServerUrl": "http://localhost:8065",
     "AutoSelectServerUrl": true,
 
-    "WebsiteURL": "https://konnect-staging.daakia.ai/",
-    "ServerNoticeURL": "https://konnect-staging.daakia.ai/",
-    "MobileNoticeURL": "https://konnect-staging.daakia.ai/",
+    "WebsiteURL": "https://konnect.daakia.ai",
+    "ServerNoticeURL": "https://konnect.daakia.ai",
+    "MobileNoticeURL": "https://konnect.daakia.ai",
     "RudderApiKey": "",
 
     "SentryEnabled": false,
