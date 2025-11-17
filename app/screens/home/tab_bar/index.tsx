@@ -85,9 +85,13 @@ function TabBar({state, descriptors, navigation, theme}: BottomTabBarProps & {th
     }, []);
 
     useEffect(() => {
-        const listner = DeviceEventEmitter.addListener(NavigationConstants.NAVIGATION_HOME, () => {
-            NavigationStore.setVisibleTap(Screens.HOME);
-            navigation.navigate(Screens.HOME);
+        const listner = DeviceEventEmitter.addListener(NavigationConstants.NAVIGATION_HOME, (screenId?: string) => {
+            // Only navigate to home tab if no screenId is provided (phone navigation)
+            // If screenId is provided, it's for tablet view and should be handled by AdditionalTabletView
+            if (!screenId) {
+                NavigationStore.setVisibleTap(Screens.HOME_DAAKIA);
+                navigation.navigate(Screens.HOME_DAAKIA);
+            }
         });
 
         return () => listner.remove();

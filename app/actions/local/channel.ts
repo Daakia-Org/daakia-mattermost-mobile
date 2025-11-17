@@ -87,12 +87,9 @@ export async function switchToChannel(serverUrl: string, channelId: string, team
                     await operator.batchRecords(models, 'switchToChannel');
                 }
 
-                if (isTabletDevice) {
-                    await dismissAllModalsAndPopToRoot();
-                    DeviceEventEmitter.emit(NavigationConstants.NAVIGATION_HOME, Screens.CHANNEL);
-                } else {
-                    await dismissAllModalsAndPopToScreen(Screens.CHANNEL, '', undefined, {topBar: {visible: false}});
-                }
+                // Always navigate to full screen Channel (like iPhone)
+                // Split view is disabled for Daakia HOME
+                await dismissAllModalsAndPopToScreen(Screens.CHANNEL, '', undefined, {topBar: {visible: false}});
 
                 logInfo('channel switch to', channel?.displayName, channelId, (Date.now() - dt), 'ms');
             }
