@@ -25,11 +25,14 @@ import DaakiaHeader from '@components/daakia_components/daakia_header';
 import DaakiaTabs from '@components/daakia_components/daakia_tabs';
 import {ITEM_HEIGHT} from '@components/slide_up_panel_item';
 import Loading from '@components/loading';
-import {Events, General, Permissions, Preferences} from '@constants';
+import {Events, General, Navigation as NavigationConstants, Permissions, Preferences} from '@constants';
 import {DMS_CATEGORY, FAVORITES_CATEGORY} from '@constants/categories';
 import {DRAFT, GLOBAL_THREADS, THREAD} from '@constants/screens';
+import Screens from '@constants/screens';
 import {useServerUrl} from '@context/server';
 import {useTheme} from '@context/theme';
+import {useIsTablet} from '@hooks/device';
+import {TABLET_SIDEBAR_WIDTH, TEAM_SIDEBAR_WIDTH} from '@constants/view';
 import {queryCategoriesByTeamIds} from '@queries/servers/categories';
 import {observeNotifyPropsByChannels} from '@queries/servers/channel';
 import {observeDraftCount} from '@queries/servers/drafts';
@@ -41,6 +44,7 @@ import {observeUnreadsAndMentions} from '@queries/servers/thread';
 import {observeCurrentUser, observeDeactivatedUsers} from '@queries/servers/user';
 import {TITLE_HEIGHT} from '@screens/bottom_sheet';
 import BottomSheetTeamList from '@screens/home/search/bottom_sheet_team_list';
+import AdditionalTabletView from '@screens/home/channel_list/additional_tablet_view';
 import {bottomSheet, resetToTeams} from '@screens/navigation';
 import {type ChannelWithMyChannel, filterArchivedChannels, filterAutoclosedDMs, filterManuallyClosedDms, getUnreadIds, sortChannels} from '@utils/categories';
 import {bottomSheetSnapPoint} from '@utils/helpers';
@@ -98,6 +102,16 @@ const getStyles = makeStyleSheetFromTheme((theme: Theme) => ({
         backgroundColor: theme.centerChannelBg,
         borderTopLeftRadius: 12,
         borderTopRightRadius: 12,
+    },
+    contentRow: {
+        flex: 1,
+        flexDirection: 'row',
+    },
+    leftColumn: {
+        flex: 0,
+        minWidth: 0,
+        flexShrink: 1,
+        maxWidth: 320, // Constrain left column width like original channel list
     },
     loadingView: {
         alignItems: 'center',
@@ -200,9 +214,11 @@ const HomeDaakia = ({
     const isFocused = useIsFocused();
     const nav = useNavigation();
     const serverUrl = useServerUrl();
+    const isTablet = useIsTablet();
     const [activeTab, setActiveTab] = useState<'all' | 'dms' | 'channels' | 'favorites'>('all');
     const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set());
     const [isLoadingData, setIsLoadingData] = useState(false);
+    const [currentSplitViewScreen, setCurrentSplitViewScreen] = useState<string | null>(null);
 
     // Redirect if user has no teams
     useEffect(() => {
@@ -210,6 +226,25 @@ const HomeDaakia = ({
             resetToTeams();
         }
     }, [isFocused, nTeams]);
+
+    // Listen for NAVIGATION_HOME events to track split view state on tablet
+    useEffect(() => {
+        if (!isTablet) {
+            return;
+        }
+
+        const listener = DeviceEventEmitter.addListener(NavigationConstants.NAVIGATION_HOME, (screenId?: string) => {
+            // Track which screen is shown in split view
+            // Empty string or undefined means close split view
+            if (!screenId || screenId === '') {
+                setCurrentSplitViewScreen(null);
+            } else {
+                setCurrentSplitViewScreen(screenId);
+            }
+        });
+
+        return () => listener.remove();
+    }, [isTablet]);
 
     // Check if database is empty and fetch all posts if needed
     useEffect(() => {
@@ -264,11 +299,27 @@ const HomeDaakia = ({
 
     const handleFilterPress = async (filterId: string) => {
         if (filterId === 'threads') {
+            // On tablet, toggle split view - close if already open
+            if (isTablet && currentSplitViewScreen === Screens.GLOBAL_THREADS) {
+                // Emit empty string to close split view - listener will update state
+                DeviceEventEmitter.emit(NavigationConstants.NAVIGATION_HOME, '');
+                // Also update state immediately for instant UI feedback
+                setCurrentSplitViewScreen(null);
+                return;
+            }
             switchToGlobalThreads(serverUrl);
             return;
         }
 
         if (filterId === 'drafts') {
+            // On tablet, toggle split view - close if already open
+            if (isTablet && currentSplitViewScreen === Screens.GLOBAL_DRAFTS) {
+                // Emit empty string to close split view - listener will update state
+                DeviceEventEmitter.emit(NavigationConstants.NAVIGATION_HOME, '');
+                // Also update state immediately for instant UI feedback
+                setCurrentSplitViewScreen(null);
+                return;
+            }
             const {error} = await switchToGlobalDrafts(serverUrl);
             if (!error) {
                 DeviceEventEmitter.emit(Events.ACTIVE_SCREEN, DRAFT);
@@ -433,84 +484,174 @@ const HomeDaakia = ({
                 <ConnectionBanner/>
                 {isFocused && (
                     <>
-                        <DaakiaHeader
-                            label='Org'
-                            title={teamDisplayName || 'Daakia Home'}
-                            canCreateChannels={canCreateChannels}
-                            canJoinChannels={canJoinChannels}
-                            canInvitePeople={false}
-                            onMenuPress={handleMenuPress}
-                            showMenu={false}
-                        />
-                        <DaakiaTabs
-                            tabs={tabs}
-                            activeTab={activeFilters.has('unread') ? '' : activeTab}
-                            onTabPress={handleTabPress}
-                        />
-                        <Animated.View style={[styles.body, bodyAnimated]}>
-                            {/* Team Switch + Filter Buttons */}
-                            <View style={styles.filterContainer}>
-                                {nTeams > 1 && (
-                                    <TouchableOpacity
-                                        style={styles.filterButton}
-                                        onPress={openTeamPicker}
-                                    >
-                                        <CompassIcon
-                                            name='account-multiple-outline'
-                                            size={16}
-                                            color={theme.centerChannelColor}
-                                        />
-                                        <Text style={styles.filterButtonText}>
-                                            {teamDisplayName || intl.formatMessage({id: 'mobile.search.team.select', defaultMessage: 'Select a team'})}
-                                        </Text>
-                                    </TouchableOpacity>
-                                )}
-                                {filterButtons.map((filter) => (
-                                    <TouchableOpacity
-                                        key={filter.id}
-                                        style={[
-                                            styles.filterButton,
-                                            activeFilters.has(filter.id) && styles.filterButtonActive,
-                                        ]}
-                                        onPress={() => handleFilterPress(filter.id)}
-                                    >
-                                        <CompassIcon
-                                            name={filter.icon}
-                                            size={18}
-                                            color={activeFilters.has(filter.id) ? theme.buttonColor : theme.centerChannelColor}
-                                        />
-                                        <Text
-                                            style={[
-                                                styles.filterButtonText,
-                                                activeFilters.has(filter.id) && styles.filterButtonTextActive,
-                                            ]}
-                                        >
-                                            {filter.title}
-                                        </Text>
-                                        {filter.hasUnread && (
-                                            <View style={styles.unreadDot}/>
-                                        )}
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-                            {isLoadingData ? (
-                                <View style={styles.loadingView}>
-                                    <Loading
-                                        size='large'
-                                        themeColor='centerChannelColor'
-                                        testID='home_daakia.loading'
+                        {isTablet && filteredChannels.length > 0 && currentSplitViewScreen ? (
+                            // Split view layout: header and channel list on left, threads/drafts on right (full height)
+                            <View style={styles.contentRow}>
+                                <View style={[styles.leftColumn, {maxWidth: TABLET_SIDEBAR_WIDTH - (nTeams > 1 ? TEAM_SIDEBAR_WIDTH : 0)}]}>
+                                    <DaakiaHeader
+                                        label='Org'
+                                        title={teamDisplayName || 'Daakia Home'}
+                                        canCreateChannels={canCreateChannels}
+                                        canJoinChannels={canJoinChannels}
+                                        canInvitePeople={false}
+                                        onMenuPress={handleMenuPress}
+                                        showMenu={false}
                                     />
+                                    <DaakiaTabs
+                                        tabs={tabs}
+                                        activeTab={activeFilters.has('unread') ? '' : activeTab}
+                                        onTabPress={handleTabPress}
+                                    />
+                                    <Animated.View style={[styles.body, bodyAnimated]}>
+                                        {/* Team Switch + Filter Buttons */}
+                                        <View style={styles.filterContainer}>
+                                            {nTeams > 1 && (
+                                                <TouchableOpacity
+                                                    style={styles.filterButton}
+                                                    onPress={openTeamPicker}
+                                                >
+                                                    <CompassIcon
+                                                        name='account-multiple-outline'
+                                                        size={16}
+                                                        color={theme.centerChannelColor}
+                                                    />
+                                                    <Text style={styles.filterButtonText}>
+                                                        {teamDisplayName || intl.formatMessage({id: 'mobile.search.team.select', defaultMessage: 'Select a team'})}
+                                                    </Text>
+                                                </TouchableOpacity>
+                                            )}
+                                            {filterButtons.map((filter) => (
+                                                <TouchableOpacity
+                                                    key={filter.id}
+                                                    style={[
+                                                        styles.filterButton,
+                                                        activeFilters.has(filter.id) && styles.filterButtonActive,
+                                                    ]}
+                                                    onPress={() => handleFilterPress(filter.id)}
+                                                >
+                                                    <CompassIcon
+                                                        name={filter.icon}
+                                                        size={18}
+                                                        color={activeFilters.has(filter.id) ? theme.buttonColor : theme.centerChannelColor}
+                                                    />
+                                                    <Text
+                                                        style={[
+                                                            styles.filterButtonText,
+                                                            activeFilters.has(filter.id) && styles.filterButtonTextActive,
+                                                        ]}
+                                                    >
+                                                        {filter.title}
+                                                    </Text>
+                                                    {filter.hasUnread && (
+                                                        <View style={styles.unreadDot}/>
+                                                    )}
+                                                </TouchableOpacity>
+                                            ))}
+                                        </View>
+                                        {isLoadingData ? (
+                                            <View style={styles.loadingView}>
+                                                <Loading
+                                                    size='large'
+                                                    themeColor='centerChannelColor'
+                                                    testID='home_daakia.loading'
+                                                />
+                                            </View>
+                                        ) : (
+                                            <DaakiaChannelList
+                                                allChannels={filteredChannels}
+                                                unreadIds={unreadIds}
+                                                currentUserId={currentUserId}
+                                                lastPosts={lastPosts}
+                                                locale={intl.locale}
+                                            />
+                                        )}
+                                    </Animated.View>
                                 </View>
-                            ) : (
-                                <DaakiaChannelList
-                                    allChannels={filteredChannels}
-                                    unreadIds={unreadIds}
-                                    currentUserId={currentUserId}
-                                    lastPosts={lastPosts}
-                                    locale={intl.locale}
+                                <AdditionalTabletView/>
+                            </View>
+                        ) : (
+                            // Normal layout: header at top, content below
+                            <>
+                                <DaakiaHeader
+                                    label='Org'
+                                    title={teamDisplayName || 'Daakia Home'}
+                                    canCreateChannels={canCreateChannels}
+                                    canJoinChannels={canJoinChannels}
+                                    canInvitePeople={false}
+                                    onMenuPress={handleMenuPress}
+                                    showMenu={false}
                                 />
-                            )}
-                        </Animated.View>
+                                <DaakiaTabs
+                                    tabs={tabs}
+                                    activeTab={activeFilters.has('unread') ? '' : activeTab}
+                                    onTabPress={handleTabPress}
+                                />
+                                <Animated.View style={[styles.body, bodyAnimated]}>
+                                    {/* Team Switch + Filter Buttons */}
+                                    <View style={styles.filterContainer}>
+                                        {nTeams > 1 && (
+                                            <TouchableOpacity
+                                                style={styles.filterButton}
+                                                onPress={openTeamPicker}
+                                            >
+                                                <CompassIcon
+                                                    name='account-multiple-outline'
+                                                    size={16}
+                                                    color={theme.centerChannelColor}
+                                                />
+                                                <Text style={styles.filterButtonText}>
+                                                    {teamDisplayName || intl.formatMessage({id: 'mobile.search.team.select', defaultMessage: 'Select a team'})}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        )}
+                                        {filterButtons.map((filter) => (
+                                            <TouchableOpacity
+                                                key={filter.id}
+                                                style={[
+                                                    styles.filterButton,
+                                                    activeFilters.has(filter.id) && styles.filterButtonActive,
+                                                ]}
+                                                onPress={() => handleFilterPress(filter.id)}
+                                            >
+                                                <CompassIcon
+                                                    name={filter.icon}
+                                                    size={18}
+                                                    color={activeFilters.has(filter.id) ? theme.buttonColor : theme.centerChannelColor}
+                                                />
+                                                <Text
+                                                    style={[
+                                                        styles.filterButtonText,
+                                                        activeFilters.has(filter.id) && styles.filterButtonTextActive,
+                                                    ]}
+                                                >
+                                                    {filter.title}
+                                                </Text>
+                                                {filter.hasUnread && (
+                                                    <View style={styles.unreadDot}/>
+                                                )}
+                                            </TouchableOpacity>
+                                        ))}
+                                    </View>
+                                    {isLoadingData ? (
+                                        <View style={styles.loadingView}>
+                                            <Loading
+                                                size='large'
+                                                themeColor='centerChannelColor'
+                                                testID='home_daakia.loading'
+                                            />
+                                        </View>
+                                    ) : (
+                                        <DaakiaChannelList
+                                            allChannels={filteredChannels}
+                                            unreadIds={unreadIds}
+                                            currentUserId={currentUserId}
+                                            lastPosts={lastPosts}
+                                            locale={intl.locale}
+                                        />
+                                    )}
+                                </Animated.View>
+                            </>
+                        )}
                         {/* Floating Call Container for incoming calls */}
                         {showIncomingCalls &&
                             <View style={styles.floatingCallWrapper}>

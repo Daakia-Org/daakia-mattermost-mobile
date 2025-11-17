@@ -12,6 +12,7 @@ import OtherMentionsBadge from '@components/other_mentions_badge';
 import RoundedHeaderContext from '@components/rounded_header_context';
 import {Screens} from '@constants';
 import {useServerUrl} from '@context/server';
+import {useTheme} from '@context/theme';
 import useAndroidHardwareBackHandler from '@hooks/android_back_handler';
 import {useIsTablet} from '@hooks/device';
 import {useDefaultHeaderHeight} from '@hooks/header';
@@ -46,6 +47,7 @@ const testID = 'global_threads.threads_list';
 const GlobalThreads = ({componentId, globalThreadsTab, hasUnreads, teamId}: Props) => {
     const serverUrl = useServerUrl();
     const intl = useIntl();
+    const theme = useTheme();
     const switchingTeam = useTeamSwitch();
     const isTablet = useIsTablet();
 
@@ -114,7 +116,7 @@ const GlobalThreads = ({componentId, globalThreadsTab, hasUnreads, teamId}: Prop
         <SafeAreaView
             edges={edges}
             mode='margin'
-            style={styles.flex}
+            style={[styles.flex, {backgroundColor: theme.centerChannelBg}]}
             testID='global_threads.screen'
             nativeID={SecurityManager.getShieldScreenId(componentId || Screens.GLOBAL_THREADS)}
         >
