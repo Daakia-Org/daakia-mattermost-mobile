@@ -48,7 +48,6 @@ local.properties
 *.iml
 *.hprof
 .cxx/
-*.keystore
 !debug.keystore
 android/app/bin
 android/app/build
