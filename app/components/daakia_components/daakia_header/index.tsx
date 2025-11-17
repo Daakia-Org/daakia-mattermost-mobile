@@ -63,7 +63,7 @@ const getStyles = makeStyleSheetFromTheme((theme: Theme) => ({
     },
     title: {
         color: theme.sidebarText,
-        ...typography('Heading', 700),
+        ...typography('Body', 500, 'SemiBold'),
         flex: 1,
     },
     label: {

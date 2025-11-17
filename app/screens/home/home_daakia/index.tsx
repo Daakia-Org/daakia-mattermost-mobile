@@ -438,7 +438,7 @@ const HomeDaakia = ({
                             title={teamDisplayName || 'Daakia Home'}
                             canCreateChannels={canCreateChannels}
                             canJoinChannels={canJoinChannels}
-                            canInvitePeople={canInvitePeople}
+                            canInvitePeople={false}
                             onMenuPress={handleMenuPress}
                             showMenu={false}
                         />

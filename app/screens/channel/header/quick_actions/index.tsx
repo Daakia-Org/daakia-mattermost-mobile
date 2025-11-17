@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-
+/*eslint-disable*/
 import React from 'react';
 import {View} from 'react-native';
 
 import ChannelActions from '@components/channel_actions';
-import CopyChannelLinkOption from '@components/channel_actions/copy_channel_link_option';
+// import CopyChannelLinkOption from '@components/channel_actions/copy_channel_link_option';
 import InfoBox from '@components/channel_actions/info_box';
 import LeaveChannelLabel from '@components/channel_actions/leave_channel_label';
 import {useTheme} from '@context/theme';
@@ -70,12 +70,12 @@ const ChannelQuickAction = ({
                     location='quick_actions'
                 />
             }
-            {callsEnabled && !isDMorGM && // if calls is not enabled, copy link will show in the channel actions
+            {/* {callsEnabled && !isDMorGM && // if calls is not enabled, copy link will show in the channel actions
                 <CopyChannelLinkOption
                     channelId={channelId}
                     showAsLabel={true}
                 />
-            }
+            } */}
             <View style={styles.line}/>
             <LeaveChannelLabel
                 channelId={channelId}

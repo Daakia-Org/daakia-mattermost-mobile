@@ -1,17 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-
-import React, {useCallback} from 'react';
+/*eslint-disable*/
+import React from 'react';
+// import {useCallback} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import ChannelInfoStartButton from '@calls/components/channel_info_start';
 import AddMembersBox from '@components/channel_actions/add_members_box';
-import CopyChannelLinkBox from '@components/channel_actions/copy_channel_link_box';
+// import CopyChannelLinkBox from '@components/channel_actions/copy_channel_link_box';
 import FavoriteBox from '@components/channel_actions/favorite_box';
 import MutedBox from '@components/channel_actions/mute_box';
 import {useServerUrl} from '@context/server';
-import {dismissBottomSheet} from '@screens/navigation';
-import {isTypeDMorGM} from '@utils/channel';
+// import {dismissBottomSheet} from '@screens/navigation';
+// import {isTypeDMorGM} from '@utils/channel';
 
 type Props = {
     channelId: string;
@@ -37,6 +38,7 @@ const styles = StyleSheet.create({
 
 const ChannelActions = ({
     channelId,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     channelType,
     inModal = false,
     dismissChannelInfo,
@@ -46,15 +48,15 @@ const ChannelActions = ({
 }: Props) => {
     const serverUrl = useServerUrl();
 
-    const onCopyLinkAnimationEnd = useCallback(() => {
-        if (!inModal) {
-            requestAnimationFrame(async () => {
-                await dismissBottomSheet();
-            });
-        }
-    }, [inModal]);
+    // const onCopyLinkAnimationEnd = useCallback(() => {
+    //     if (!inModal) {
+    //         requestAnimationFrame(async () => {
+    //             await dismissBottomSheet();
+    //         });
+    //     }
+    // }, [inModal]);
 
-    const isDM = isTypeDMorGM(channelType);
+    // const isDM = isTypeDMorGM(channelType);
 
     return (
         <View style={styles.wrapper}>
@@ -79,7 +81,7 @@ const ChannelActions = ({
                     />
                 </>
             }
-            {!isDM && !callsEnabled &&
+            {/* {!isDM && !callsEnabled &&
                 <>
                     <View style={styles.separator}/>
                     <CopyChannelLinkBox
@@ -88,7 +90,7 @@ const ChannelActions = ({
                         testID={`${testID}.copy_channel_link.action`}
                     />
                 </>
-            }
+            } */}
             {callsEnabled &&
                 <>
                     <View style={styles.separator}/>

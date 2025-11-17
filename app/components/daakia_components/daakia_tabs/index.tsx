@@ -34,27 +34,30 @@ const getStyles = makeStyleSheetFromTheme((theme: Theme) => ({
         ...HOME_PADDING,
         paddingVertical: 8,
         flexDirection: 'row',
+        flexWrap: 'nowrap',
     },
     tab: {
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingHorizontal: 8,
+        paddingHorizontal: 4,
         paddingVertical: 10,
         marginHorizontal: 2,
         borderRadius: 8,
         position: 'relative',
         backgroundColor: 'transparent',
         minHeight: 40,
+        minWidth: 0,
     },
     activeTab: {
         backgroundColor: changeOpacity(theme.buttonBg, 0.12),
     },
     iconContainer: {
-        marginRight: 6,
+        marginRight: 4,
         alignItems: 'center',
         justifyContent: 'center',
+        flexShrink: 0,
     },
     icon: {
         fontSize: 18,
@@ -69,6 +72,7 @@ const getStyles = makeStyleSheetFromTheme((theme: Theme) => ({
         ...typography('Body', 100, 'SemiBold'),
         fontSize: 13,
         letterSpacing: 0.2,
+        flexShrink: 1,
     },
     activeTabText: {
         color: theme.buttonBg,
@@ -122,6 +126,8 @@ const DaakiaTabs = ({tabs, activeTab, onTabPress}: Props) => {
                                     styles.tabText,
                                     isActive ? styles.activeTabText : styles.inactiveTabText,
                                 ]}
+                                numberOfLines={1}
+                                ellipsizeMode='tail'
                             >
                                 {tab.title}
                             </Text>
