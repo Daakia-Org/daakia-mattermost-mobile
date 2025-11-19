@@ -1,13 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Alert, type AlertButton} from 'react-native';
+import {nativeApplicationVersion} from 'expo-application';
+import {Alert, type AlertButton, Platform} from 'react-native';
 
 import CompassIcon from '@components/compass_icon';
 import {Screens, Sso, SupportedServer, Launch} from '@constants';
 import {dismissBottomSheet, showModal} from '@screens/navigation';
 import {getErrorMessage} from '@utils/errors';
 import {isMinimumServerVersion} from '@utils/helpers';
+import {logDebug} from '@utils/log';
 import {changeOpacity} from '@utils/theme';
 import {tryOpenURL} from '@utils/url';
 
@@ -55,7 +57,47 @@ export async function addNewServer(theme: Theme, serverUrl?: string, displayName
     showModal(Screens.SERVER, '', props, options);
 }
 
+// Helper function to check if current version matches any in the block list
+function isVersionInBlockList(currentVersion: string, versionBlock: string | string[] | undefined): boolean {
+    // Early return if no version block or empty
+    if (!versionBlock) {
+        return false;
+    }
+
+    // Handle array format
+    let versionList: string[];
+    if (Array.isArray(versionBlock)) {
+        // If empty array, return false
+        if (versionBlock.length === 0) {
+            return false;
+        }
+        versionList = versionBlock.map((v) => String(v).trim()).filter((v) => v.length > 0);
+    } else {
+        // Handle string format - split by comma and trim
+        const versionStr = String(versionBlock).trim();
+        if (versionStr === '' || versionStr === '0' || versionStr === 'undefined') {
+            return false;
+        }
+        versionList = versionStr.split(',').map((v) => v.trim()).filter((v) => v.length > 0 && v !== '0');
+    }
+
+    // Early return if empty list
+    if (versionList.length === 0) {
+        return false;
+    }
+
+    // Use Set for O(1) lookup
+    const versionSet = new Set(versionList);
+
+    // Check exact match
+    return versionSet.has(currentVersion.trim());
+}
+
 export function loginOptions(config: ClientConfig, license: ClientLicense) {
+    // Debug logs
+    logDebug('Platform:', Platform.OS);
+    logDebug('Version:', nativeApplicationVersion);
+
     const isLicensed = license.IsLicensed === 'true';
     const samlEnabled = config.EnableSaml === 'true' && isLicensed && license.SAML === 'true';
     const gitlabEnabled = config.EnableSignUpWithGitLab === 'true';
@@ -74,12 +116,48 @@ export function loginOptions(config: ClientConfig, license: ClientLicense) {
     }
     const ldapEnabled = isLicensed && config.EnableLdap === 'true' && license.LDAP === 'true';
     const hasLoginForm = config.EnableSignInWithEmail === 'true' || config.EnableSignInWithUsername === 'true' || ldapEnabled;
+
+    // Check if SSO should be hidden based on platform and version
+    const currentVersion = nativeApplicationVersion || '';
+    const isIOS = Platform.OS === 'ios';
+
+    // Get platform-specific values
+    const ssoHide = isIOS ? config.IosSsoHide : config.AndroidSsoHide;
+    const versionBlock = isIOS ? config.IosVersionBlock : config.AndroidVersionBlock;
+
+    // Determine if SSO should be hidden
+    let shouldHideSSO = false;
+
+    // If SSO hide is true, check version block
+    if (ssoHide === 'true') {
+        // If version block is empty/undefined, show SSO normally
+        if (!versionBlock ||
+            (Array.isArray(versionBlock) && versionBlock.length === 0) ||
+            (typeof versionBlock === 'string' && (versionBlock.trim() === '' || versionBlock === '0'))) {
+            shouldHideSSO = false;
+            logDebug('Version block empty - showing SSO');
+        } else {
+            // Check if current version matches any in the block list
+            const versionMatches = isVersionInBlockList(currentVersion, versionBlock);
+            shouldHideSSO = versionMatches;
+            if (versionMatches) {
+                logDebug('Version matches - hiding SSO');
+            } else {
+                logDebug('Version does not match - showing SSO');
+            }
+        }
+    } else {
+        // SSO hide is false or undefined, show SSO normally
+        shouldHideSSO = false;
+        logDebug('SSO Hide is false - showing SSO');
+    }
+
     const ssoOptions: SsoWithOptions = {
-        [Sso.SAML]: {enabled: samlEnabled, text: config.SamlLoginButtonText},
-        [Sso.GITLAB]: {enabled: gitlabEnabled},
-        [Sso.GOOGLE]: {enabled: googleEnabled},
-        [Sso.OFFICE365]: {enabled: o365Enabled},
-        [Sso.OPENID]: {enabled: openIdEnabled, text: config.OpenIdButtonText},
+        [Sso.SAML]: {enabled: shouldHideSSO ? false : samlEnabled, text: config.SamlLoginButtonText},
+        [Sso.GITLAB]: {enabled: shouldHideSSO ? false : gitlabEnabled},
+        [Sso.GOOGLE]: {enabled: shouldHideSSO ? false : googleEnabled},
+        [Sso.OFFICE365]: {enabled: shouldHideSSO ? false : o365Enabled},
+        [Sso.OPENID]: {enabled: shouldHideSSO ? false : openIdEnabled, text: config.OpenIdButtonText},
     };
     const enabledSSOs = Object.keys(ssoOptions).filter((key) => ssoOptions[key]);
     const numberSSOs = enabledSSOs.length;
