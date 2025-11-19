@@ -11,6 +11,7 @@ import OtherMentionsBadge from '@components/other_mentions_badge';
 import RoundedHeaderContext from '@components/rounded_header_context';
 import {Screens} from '@constants';
 import {DRAFT_SCREEN_TAB_DRAFTS, type DraftScreenTab} from '@constants/draft';
+import {useTheme} from '@context/theme';
 import {useIsTablet} from '@hooks/device';
 import {useDefaultHeaderHeight} from '@hooks/header';
 import {useTeamSwitch} from '@hooks/team_switch';
@@ -40,6 +41,7 @@ const styles = StyleSheet.create({
 
 const GlobalDraftsAndScheduledPosts = ({componentId, scheduledPostsEnabled, initialTab}: Props) => {
     const intl = useIntl();
+    const theme = useTheme();
     const switchingTeam = useTeamSwitch();
     const isTablet = useIsTablet();
 
@@ -85,7 +87,7 @@ const GlobalDraftsAndScheduledPosts = ({componentId, scheduledPostsEnabled, init
         <SafeAreaView
             edges={edges}
             mode='margin'
-            style={styles.flex}
+            style={[styles.flex, {backgroundColor: theme.centerChannelBg}]}
             testID='global_drafts.screen'
             nativeID={SecurityManager.getShieldScreenId(componentId || Screens.GLOBAL_DRAFTS)}
         >

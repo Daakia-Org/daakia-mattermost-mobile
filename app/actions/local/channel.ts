@@ -87,9 +87,10 @@ export async function switchToChannel(serverUrl: string, channelId: string, team
                     await operator.batchRecords(models, 'switchToChannel');
                 }
 
+                // On tablet, use split view (like threads/drafts)
+                // On phone, navigate to full screen
                 if (isTabletDevice) {
-                    await dismissAllModalsAndPopToRoot();
-                    DeviceEventEmitter.emit(NavigationConstants.NAVIGATION_HOME, Screens.CHANNEL);
+                    DeviceEventEmitter.emit(NavigationConstants.NAVIGATION_HOME, Screens.CHANNEL, {channelId});
                 } else {
                     await dismissAllModalsAndPopToScreen(Screens.CHANNEL, '', undefined, {topBar: {visible: false}});
                 }

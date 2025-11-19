@@ -41,11 +41,16 @@ const views = new Map([
 ]);
 
 const AdditionalTabletView = ({onTeam, intialView}: Props) => {
-    const [selected, setSelected] = useState<SelectedView>(views.get(intialView) || channelScreen);
+    const [selected, setSelected] = useState<SelectedView | null>(views.get(intialView) || channelScreen);
     const [initiaLoad, setInitialLoad] = useState(true);
 
     useEffect(() => {
         const listener = DeviceEventEmitter.addListener(Navigation.NAVIGATION_HOME, (id: string, params?: unknown) => {
+            // If empty string, hide the split view
+            if (!id || id === '') {
+                setSelected(null);
+                return;
+            }
             const component = ComponentsList[id];
             if (component) {
                 setSelected({
