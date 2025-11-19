@@ -9,7 +9,7 @@ buildscript {
         kotlin_version = kotlinVersion
         RNNKotlinVersion = kotlinVersion
         firebaseVersion = "24.1.0"
-        ndkVersion = "26.1.10909125"
+        ndkVersion = "29.0.13846066"
     }
     repositories {
         mavenCentral()
