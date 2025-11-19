@@ -2,10 +2,12 @@
 // See LICENSE.txt for license information.
 
 import {useHardwareKeyboardEvents} from '@mattermost/hardware-keyboard';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {Keyboard, type LayoutChangeEvent, type NativeSyntheticEvent, Platform, ScrollView, type TextInputSelectionChangeEventData, View} from 'react-native';
 import {type Edge, SafeAreaView} from 'react-native-safe-area-context';
+
+import {useInputPropagation} from '@hooks/input';
 
 import CompassIcon from '@components/compass_icon';
 import DaakiaInput from '@components/daakia_components/daakia_input';
@@ -190,6 +192,8 @@ function DraftInput({
     const theme = useTheme();
     const isTablet = useIsTablet();
     const [showPlusActions, setShowPlusActions] = useState(false);
+    const [propagateValue, shouldProcessEvent] = useInputPropagation();
+    const lastNativeValue = useRef('');
 
     const handleLayout = useCallback((e: LayoutChangeEvent) => {
         updatePostInputTop(e.nativeEvent.layout.height);
@@ -306,6 +310,13 @@ function DraftInput({
 
     useHardwareKeyboardEvents(hardwareEvents);
 
+    useEffect(() => {
+        if (value !== lastNativeValue.current) {
+            propagateValue(value);
+            lastNativeValue.current = value;
+        }
+    }, [value, propagateValue]);
+
     return (
         <>
             <Typing
@@ -355,7 +366,11 @@ function DraftInput({
                                 testID={postInputTestID}
                                 value={value}
                                 onChangeText={(text: string) => {
+                                    if (!shouldProcessEvent(text)) {
+                                        return;
+                                    }
                                     updateValue(text);
+                                    lastNativeValue.current = text;
 
                                     // Update cursor position immediately when text changes
                                     // This ensures @ mention autocomplete works correctly
