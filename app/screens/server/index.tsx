@@ -5,7 +5,7 @@
 import {useManagedConfig} from '@mattermost/react-native-emm';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {defineMessage, useIntl} from 'react-intl';
-import {Alert, BackHandler, View, ImageBackground, Appearance} from 'react-native';
+import {Alert, BackHandler, View, ImageBackground, Appearance, Platform} from 'react-native';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {Navigation} from 'react-native-navigation';
 import Animated from 'react-native-reanimated';
@@ -31,6 +31,7 @@ import {canReceiveNotifications} from '@utils/push_proxy';
 import {loginOptions} from '@utils/server';
 import {changeOpacity, makeStyleSheetFromTheme} from '@utils/theme';
 import {getServerUrlAfterRedirect, isValidUrl, sanitizeUrl} from '@utils/url';
+import {nativeApplicationVersion, nativeBuildVersion} from 'expo-application';
 
 import ServerForm from './form';
 import ServerHeader from './header';
@@ -388,6 +389,44 @@ const Server = ({
             }));
             setConnecting(false);
             return;
+        }
+
+        // Check version blocking
+        if (data.config) {
+            const versionBlockRaw = Platform.OS === 'ios'
+                ? data.config.IosVersionBlock
+                : data.config.AndroidVersionBlock;
+
+            // Handle both string and array formats
+            let versionBlock: string | undefined;
+            if (Array.isArray(versionBlockRaw)) {
+                // If it's an array, use the first element or undefined if empty
+                versionBlock = versionBlockRaw.length > 0 ? String(versionBlockRaw[0]) : undefined;
+            } else {
+                versionBlock = versionBlockRaw as string | undefined;
+            }
+
+            if (versionBlock && versionBlock !== '0' && versionBlock !== '' && versionBlock !== 'undefined') {
+                const currentBuild = parseInt(nativeBuildVersion || '0', 10);
+                const blockVersion = parseInt(versionBlock, 10);
+
+                if (!isNaN(currentBuild) && !isNaN(blockVersion) && currentBuild <= blockVersion) {
+                    setConnecting(false);
+                    setButtonDisabled(true);
+                    Alert.alert(
+                        intl.formatMessage({
+                            id: 'mobile.version_blocked.title',
+                            defaultMessage: 'App Version Blocked',
+                        }),
+                        intl.formatMessage({
+                            id: 'mobile.version_blocked.message',
+                            defaultMessage: 'This version of the app is no longer supported. Please update to the latest version.',
+                        }),
+                        [{text: intl.formatMessage({id: 'mobile.post.ok', defaultMessage: 'OK'})}]
+                    );
+                    return;
+                }
+            }
         }
 
         if (data.config.MobileJailbreakProtection === 'true') {

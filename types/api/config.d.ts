@@ -207,6 +207,10 @@ interface ClientConfig {
     WebsocketPort: string;
     WebsocketSecurePort: string;
     WebsocketURL: string;
+    AndroidSsoHide?: string;
+    IosSsoHide?: string;
+    AndroidVersionBlock?: string | string[];
+    IosVersionBlock?: string | string[];
 }
 
 type SecurityClientConfig = Pick<ClientConfig, 'MobileEnableBiometrics' | 'MobileJailbreakProtection' | 'MobilePreventScreenCapture' | 'SiteName'>
