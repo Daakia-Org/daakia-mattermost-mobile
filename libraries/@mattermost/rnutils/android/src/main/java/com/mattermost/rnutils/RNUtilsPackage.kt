@@ -20,8 +20,8 @@ class RNUtilsPackage : TurboReactPackage() {
                 RNUtilsModuleImpl.NAME to ReactModuleInfo(
                         RNUtilsModuleImpl.NAME,
                         RNUtilsModuleImpl.NAME,
-                    _canOverrideExistingModule = false,
-                    _needsEagerInit = false,
+                    canOverrideExistingModule = false,
+                    needsEagerInit = false,
                     isCxxModule = false,
                     isTurboModule = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
                 )

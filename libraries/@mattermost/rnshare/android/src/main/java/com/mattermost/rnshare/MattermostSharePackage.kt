@@ -22,8 +22,8 @@ class MattermostSharePackage : TurboReactPackage() {
       moduleInfos[MattermostShareImpl.NAME] = ReactModuleInfo(
         MattermostShareImpl.NAME,
         MattermostShareImpl.NAME,
-          _canOverrideExistingModule = false,
-          _needsEagerInit = false,
+          canOverrideExistingModule = false,
+          needsEagerInit = false,
           isCxxModule = false,
           isTurboModule = isTurboModule
       )

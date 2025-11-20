@@ -20,8 +20,8 @@ class MattermostHardwareKeyboardPackage : TurboReactPackage() {
                 MattermostHardwareKeyboardImpl.NAME to ReactModuleInfo(
                         MattermostHardwareKeyboardImpl.NAME,
                         MattermostHardwareKeyboardImpl.NAME,
-                    _canOverrideExistingModule = false,
-                    _needsEagerInit = false,
+                    canOverrideExistingModule = false,
+                    needsEagerInit = false,
                     isCxxModule = false,
                     isTurboModule = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
                 )

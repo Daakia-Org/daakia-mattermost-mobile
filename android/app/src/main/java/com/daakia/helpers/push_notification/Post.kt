@@ -62,7 +62,7 @@ internal suspend fun PushNotificationDataRunnable.Companion.fetchPosts(
                     val userIdsAlreadyLoaded = mutableListOf<String>()
                     if (loadedProfiles != null) {
                         for (i in 0 until loadedProfiles.size()) {
-                            loadedProfiles.getMap(i).getString("id")?.let { userIdsAlreadyLoaded.add(it) }
+                            loadedProfiles.getMap(i)?.getString("id")?.let { userIdsAlreadyLoaded.add(it) }
                         }
                     }
 
@@ -94,7 +94,7 @@ internal suspend fun PushNotificationDataRunnable.Companion.fetchPosts(
                         val attachments = props?.getArray("attachments")
                         if (attachments != null) {
                             for (i in 0 until attachments.size()) {
-                                val attachment = attachments.getMap(i)
+                                val attachment = attachments.getMap(i) ?: continue
                                 val pretext = attachment.getString("pretext")
                                 val text = attachment.getString("text")
                                 findNeededUsernames(pretext)
@@ -131,20 +131,21 @@ internal suspend fun PushNotificationDataRunnable.Companion.fetchPosts(
                             val participants = post?.getArray("participants")
                             participants?.let {
                                 for (i in 0 until it.size()) {
-                                    val participant = it.getMap(i)
+                                    val participant = it.getMap(i) ?: continue
+                                    val nonNullParticipant = participant
 
-                                    val participantId = participant.getString("id")
+                                    val participantId = nonNullParticipant.getString("id")
                                     if (participantId != currentUserId && participantId != null) {
                                         if (!threadParticipantUserIds.contains(participantId) && !userIdsAlreadyLoaded.contains(participantId)) {
                                             threadParticipantUserIds.add(participantId)
                                         }
 
                                         if (!threadParticipantUsers.containsKey(participantId)) {
-                                            threadParticipantUsers[participantId] = participant
+                                            threadParticipantUsers[participantId] = nonNullParticipant
                                         }
                                     }
 
-                                    val username = participant.getString("username")
+                                    val username = nonNullParticipant.getString("username")
                                     if (username != null && username != currentUsername && !threadParticipantUsernames.contains(username)) {
                                         threadParticipantUsernames.add(username)
                                     }

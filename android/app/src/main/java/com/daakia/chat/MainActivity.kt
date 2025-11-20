@@ -4,32 +4,14 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.view.KeyEvent
 import androidx.core.view.WindowCompat
-import com.facebook.react.ReactActivityDelegate
-import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint
-import com.facebook.react.defaults.DefaultReactActivityDelegate
 import com.mattermost.hardware.keyboard.MattermostHardwareKeyboardImpl
 import com.mattermost.rnutils.helpers.FoldableObserver
 import com.reactnativenavigation.NavigationActivity
-import expo.modules.ReactActivityDelegateWrapper
 
 class MainActivity : NavigationActivity() {
     private var HWKeyboardConnected = false
     private val foldableObserver = FoldableObserver.getInstance(this)
     private var lastOrientation: Int = Configuration.ORIENTATION_UNDEFINED
-
-    /**
-     * Returns the name of the main component registered from JavaScript. This is used to schedule
-     * rendering of the component.
-     */
-    override fun getMainComponentName(): String = "Konnect"
-
-    /**
-     * Returns the instance of the [ReactActivityDelegate]. We use [DefaultReactActivityDelegate]
-     * which allows you to enable New Architecture with a single boolean flags [fabricEnabled]
-     */
-    override fun createReactActivityDelegate(): ReactActivityDelegate =
-        ReactActivityDelegateWrapper(this, BuildConfig.IS_NEW_ARCHITECTURE_ENABLED,
-                DefaultReactActivityDelegate(this, mainComponentName, DefaultNewArchitectureEntryPoint.fabricEnabled))
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,7 +54,6 @@ class MainActivity : NavigationActivity() {
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        reactGateway.onWindowFocusChanged(hasFocus)
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {

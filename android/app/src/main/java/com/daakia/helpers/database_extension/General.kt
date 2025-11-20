@@ -13,7 +13,7 @@ import java.util.Arrays
 
 internal fun DatabaseHelper.saveToDatabase(db: WMDatabase, data: ReadableMap, teamId: String?, channelId: String?, receivingThreads: Boolean) {
     db.transaction {
-        val posts = data.getMap("posts")
+        val posts = data.getMap("posts") ?: return@transaction
         data.getMap("team")?.let { insertTeam(db, it) }
         data.getMap("myTeam")?.let { insertMyTeam(db, it) }
         data.getMap("channel")?.let { handleChannel(db, it) }
@@ -26,7 +26,7 @@ internal fun DatabaseHelper.saveToDatabase(db: WMDatabase, data: ReadableMap, te
         data.getArray("threads")?.let {
             val threadsArray = ArrayList<ReadableMap>()
             for (i in 0 until it.size()) {
-                threadsArray.add(it.getMap(i))
+                it.getMap(i)?.let { map -> threadsArray.add(map) }
             }
             handleThreads(db, threadsArray, teamId)
         }

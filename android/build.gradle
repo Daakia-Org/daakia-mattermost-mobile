@@ -5,11 +5,11 @@ buildscript {
         compileSdkVersion = 35
         targetSdkVersion = 35
         supportLibVersion = "35.0.0"
-        kotlinVersion = "1.9.25"
+        kotlinVersion = "2.0.21"
         kotlin_version = kotlinVersion
         RNNKotlinVersion = kotlinVersion
         firebaseVersion = "24.1.0"
-        ndkVersion = "26.1.10909125"
+        ndkVersion = "27.1.12297006"
     }
     repositories {
         mavenCentral()
@@ -39,6 +39,15 @@ allprojects {
             url "$rootDir/../detox/node_modules/detox/Detox-android"
         }
         maven { url 'https://jitpack.io' }
+    }
+    
+    // Force Kotlin version for all subprojects
+    configurations.all {
+        resolutionStrategy {
+            force "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
+            force "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${rootProject.ext.kotlinVersion}"
+            force "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:${rootProject.ext.kotlinVersion}"
+        }
     }
 }
 

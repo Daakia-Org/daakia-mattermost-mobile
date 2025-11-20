@@ -23,6 +23,7 @@ import com.mattermost.turbolog.ConfigureOptions
 import com.nozbe.watermelondb.jsi.JSIInstaller
 import com.nozbe.watermelondb.jsi.WatermelonDBJSIPackage
 import com.reactnativenavigation.NavigationApplication
+import com.reactnativenavigation.react.ReactGateway
 import com.wix.reactnativenotifications.RNNotificationsPackage
 import com.wix.reactnativenotifications.core.AppLaunchHelper
 import com.wix.reactnativenotifications.core.AppLifecycleFacade
@@ -56,8 +57,19 @@ class MainApplication : NavigationApplication(), INotificationsApplication {
                 override val isHermesEnabled: Boolean = BuildConfig.IS_HERMES_ENABLED
             })
 
+    // Initialize ReactHost as a lazy property to ensure it's created once and properly initialized
+    private val _reactHost: ReactHost by lazy {
+        getDefaultReactHost(applicationContext, reactNativeHost)
+    }
+
     override val reactHost: ReactHost
-        get() = getDefaultReactHost(applicationContext, reactNativeHost)
+        get() = _reactHost
+
+    override fun createReactGateway(): ReactGateway {
+        // Ensure reactHost is initialized before creating ReactGateway
+        // Accessing _reactHost will trigger lazy initialization
+        return ReactGateway(_reactHost)
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -85,6 +97,10 @@ class MainApplication : NavigationApplication(), INotificationsApplication {
             load(bridgelessEnabled = false)
         }
         ApplicationLifecycleDispatcher.onApplicationCreate(this)
+        
+        // Initialize ReactHost early to ensure TurboModules are registered
+        // This ensures PlatformConstants and other TurboModules are available when JS code loads
+        _reactHost
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {

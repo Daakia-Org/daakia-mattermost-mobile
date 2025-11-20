@@ -82,7 +82,7 @@ internal fun updateThread(db: WMDatabase, thread: ReadableMap, existingRecord: R
 internal fun insertThreadParticipants(db: WMDatabase, threadId: String, participants: ReadableArray) {
     for (i in 0 until participants.size()) {
         try {
-            val participant = participants.getMap(i)
+            val participant = participants.getMap(i) ?: continue
             val id = RandomId.generate()
             db.execute(
                     """
