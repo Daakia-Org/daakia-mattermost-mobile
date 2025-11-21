@@ -33,7 +33,6 @@ import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ReactNativeHostWrapper
 import expo.modules.image.okhttp.ExpoImageOkHttpClientGlideModule
 import java.io.File
-import com.app.daakiameet.BuildConfig
 
 class MainApplication : NavigationApplication(), INotificationsApplication {
     private var listenerAdded = false

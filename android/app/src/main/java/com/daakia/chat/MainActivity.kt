@@ -11,7 +11,6 @@ import com.mattermost.hardware.keyboard.MattermostHardwareKeyboardImpl
 import com.mattermost.rnutils.helpers.FoldableObserver
 import com.reactnativenavigation.NavigationActivity
 import expo.modules.ReactActivityDelegateWrapper
-import com.app.daakiameet.BuildConfig
 import com.app.daakiameet.R
 
 class MainActivity : NavigationActivity() {
