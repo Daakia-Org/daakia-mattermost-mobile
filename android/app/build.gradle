@@ -123,11 +123,11 @@ android {
 
     signingConfigs {
         release {
-            if (project.hasProperty('daakia_release.keystore')) {
-                storeFile file('daakia_release.keystore')
-                storePassword 'QazWsxEdc!@'
-                keyAlias 'daakia_konnect'
-                keyPassword 'QazWsxEdc!@'
+            if (project.hasProperty('DaakiaMeetKey.jks')) {
+                storeFile file('DaakiaMeetKey.jks')
+                storePassword 'Digital#321@'
+                keyAlias 'key0'
+                keyPassword 'Digital#321@'
             }
         }
         debug {
@@ -146,7 +146,7 @@ android {
         }
     }
     buildTypes {
-        def useReleaseKey = project.hasProperty('daakia_release.keystore')
+        def useReleaseKey = project.hasProperty('DaakiaMeetKey.jks')
         release {
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
