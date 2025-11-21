@@ -7,6 +7,25 @@
     "client": [
         {
             "client_info": {
+                "mobilesdk_app_id": "1:716332107473:android:ec09636df9244b9fa7e7f0",
+                "android_client_info": {
+                    "package_name": "com.app.daakiameet"
+                }
+            },
+            "oauth_client": [],
+            "api_key": [
+                {
+                    "current_key": "AIzaSyDIUJg-7eSadoWaJLw0IGw5C5xHSHYFsg4"
+                }
+            ],
+            "services": {
+                "appinvite_service": {
+                    "other_platform_oauth_client": []
+                }
+            }
+        },
+        {
+            "client_info": {
                 "mobilesdk_app_id": "1:716332107473:android:03d984fda345e133a7e7f0",
                 "android_client_info": {
                     "package_name": "com.daakia.chat"
