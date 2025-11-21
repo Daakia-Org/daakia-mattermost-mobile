@@ -1,4 +1,4 @@
-package com.daakia.chat;
+package com.app.daakiameet;
 
 import com.wix.detox.Detox;
 import com.wix.detox.config.DetoxConfig;

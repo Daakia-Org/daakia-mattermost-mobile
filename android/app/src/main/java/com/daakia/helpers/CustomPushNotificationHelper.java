@@ -29,7 +29,7 @@ import androidx.core.app.RemoteInput;
 import androidx.core.graphics.drawable.IconCompat;
 
 import com.app.daakiameet.R;
-import com.daakia.chat.*;
+import com.app.daakiameet.*;
 import com.mattermost.rnutils.helpers.NotificationHelper;
 import com.nozbe.watermelondb.WMDatabase;
 import com.mattermost.turbolog.TurboLog;

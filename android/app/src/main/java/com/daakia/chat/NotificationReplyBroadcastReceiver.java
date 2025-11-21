@@ -1,4 +1,4 @@
-package com.daakia.chat;
+package com.app.daakiameet;
 
 import android.app.Notification;
 import android.app.NotificationManager;
