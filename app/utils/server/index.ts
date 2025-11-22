@@ -126,7 +126,7 @@ export function loginOptions(config: ClientConfig, license: ClientLicense) {
     const versionBlock = isIOS ? config.IosVersionBlock : config.AndroidVersionBlock;
 
     // Determine if SSO should be hidden
-    let shouldHideSSO = false;
+    let shouldHideSSOValue = false;
 
     // If SSO hide is true, check version block
     if (ssoHide === 'true') {
@@ -134,12 +134,12 @@ export function loginOptions(config: ClientConfig, license: ClientLicense) {
         if (!versionBlock ||
             (Array.isArray(versionBlock) && versionBlock.length === 0) ||
             (typeof versionBlock === 'string' && (versionBlock.trim() === '' || versionBlock === '0'))) {
-            shouldHideSSO = false;
+            shouldHideSSOValue = false;
             logDebug('Version block empty - showing SSO');
         } else {
             // Check if current version matches any in the block list
             const versionMatches = isVersionInBlockList(currentVersion, versionBlock);
-            shouldHideSSO = versionMatches;
+            shouldHideSSOValue = versionMatches;
             if (versionMatches) {
                 logDebug('Version matches - hiding SSO');
             } else {
@@ -148,16 +148,16 @@ export function loginOptions(config: ClientConfig, license: ClientLicense) {
         }
     } else {
         // SSO hide is false or undefined, show SSO normally
-        shouldHideSSO = false;
+        shouldHideSSOValue = false;
         logDebug('SSO Hide is false - showing SSO');
     }
 
     const ssoOptions: SsoWithOptions = {
-        [Sso.SAML]: {enabled: shouldHideSSO ? false : samlEnabled, text: config.SamlLoginButtonText},
-        [Sso.GITLAB]: {enabled: shouldHideSSO ? false : gitlabEnabled},
-        [Sso.GOOGLE]: {enabled: shouldHideSSO ? false : googleEnabled},
-        [Sso.OFFICE365]: {enabled: shouldHideSSO ? false : o365Enabled},
-        [Sso.OPENID]: {enabled: shouldHideSSO ? false : openIdEnabled, text: config.OpenIdButtonText},
+        [Sso.SAML]: {enabled: shouldHideSSOValue ? false : samlEnabled, text: config.SamlLoginButtonText},
+        [Sso.GITLAB]: {enabled: shouldHideSSOValue ? false : gitlabEnabled},
+        [Sso.GOOGLE]: {enabled: shouldHideSSOValue ? false : googleEnabled},
+        [Sso.OFFICE365]: {enabled: shouldHideSSOValue ? false : o365Enabled},
+        [Sso.OPENID]: {enabled: shouldHideSSOValue ? false : openIdEnabled, text: config.OpenIdButtonText},
     };
     const enabledSSOs = Object.keys(ssoOptions).filter((key) => ssoOptions[key]);
     const numberSSOs = enabledSSOs.length;
@@ -168,6 +168,34 @@ export function loginOptions(config: ClientConfig, license: ClientLicense) {
         numberSSOs,
         ssoOptions,
     };
+}
+
+export function shouldHideSSO(config: ClientConfig): boolean {
+    const currentVersion = nativeApplicationVersion || '';
+    const isIOS = Platform.OS === 'ios';
+
+    // Get platform-specific values
+    const ssoHide = isIOS ? config.IosSsoHide : config.AndroidSsoHide;
+    const versionBlock = isIOS ? config.IosVersionBlock : config.AndroidVersionBlock;
+
+    // Determine if SSO should be hidden
+    let shouldHide = false;
+
+    // If SSO hide is true, check version block
+    if (ssoHide === 'true') {
+        // If version block is empty/undefined, show SSO normally
+        if (!versionBlock ||
+            (Array.isArray(versionBlock) && versionBlock.length === 0) ||
+            (typeof versionBlock === 'string' && (versionBlock.trim() === '' || versionBlock === '0'))) {
+            shouldHide = false;
+        } else {
+            // Check if current version matches any in the block list
+            const versionMatches = isVersionInBlockList(currentVersion, versionBlock);
+            shouldHide = versionMatches;
+        }
+    }
+
+    return shouldHide;
 }
 
 export async function loginToServer(theme: Theme, serverUrl: string, displayName: string, config: ClientConfig, license: ClientLicense) {
