@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {Keyboard, Platform, Text, View} from 'react-native';
 
@@ -23,6 +23,7 @@ import {useDefaultHeaderHeight} from '@hooks/header';
 import {usePreventDoubleTap} from '@hooks/utils';
 import {createPlaybookRun, fetchPlaybookRunsForChannel} from '@playbooks/actions/remote/runs';
 import {goToPlaybookRun, goToPlaybookRuns} from '@playbooks/screens/navigation';
+import {getConfig} from '@queries/servers/system';
 import {getCurrentUser} from '@queries/servers/user';
 import {BOTTOM_SHEET_ANDROID_OFFSET} from '@screens/bottom_sheet';
 import ChannelBanner from '@screens/channel/header/channel_banner';
@@ -32,6 +33,7 @@ import {isTypeDMorGM} from '@utils/channel';
 import {getFullErrorMessage} from '@utils/errors';
 import {bottomSheetSnapPoint} from '@utils/helpers';
 import {logDebug} from '@utils/log';
+import {shouldHideSSO} from '@utils/server';
 import {showPlaybookErrorSnackbar} from '@utils/snack_bar';
 import {changeOpacity, makeStyleSheetFromTheme} from '@utils/theme';
 import {typography} from '@utils/typography';
@@ -94,6 +96,29 @@ const getStyleSheet = makeStyleSheetFromTheme((theme: Theme) => ({
         height: 13,
     },
 }));
+
+const useShouldShowDaakiaButton = (serverUrl: string): boolean => {
+    const [shouldShow, setShouldShow] = useState(true);
+
+    useEffect(() => {
+        const check = async () => {
+            try {
+                const database = DatabaseManager.serverDatabases[serverUrl]?.database;
+                if (database) {
+                    const config = await getConfig(database);
+                    if (config) {
+                        setShouldShow(!shouldHideSSO(config));
+                    }
+                }
+            } catch {
+                setShouldShow(true); // Default to showing on error
+            }
+        };
+        check();
+    }, [serverUrl]);
+
+    return shouldShow;
+};
 
 const ChannelHeader = ({
     canAddBookmarks,
@@ -277,6 +302,8 @@ const ChannelHeader = ({
         }
     }, [serverUrl, intl, channelId]);
 
+    const shouldShowDaakiaButton = useShouldShowDaakiaButton(serverUrl);
+
     const rightButtons = useMemo(() => {
         const buttons: HeaderRightButton[] = [];
         if (isPlaybooksEnabled && !isDMorGM) {
@@ -288,13 +315,15 @@ const ChannelHeader = ({
             });
         }
 
-        // Add Daakia Meeting quick start button
-        buttons.push({
-            iconName: 'phone-in-talk',
-            onPress: startDaakiaMeeting,
-            buttonType: 'opacity',
-            testID: 'channel_header.daakia_meeting.button',
-        });
+        // Add Daakia Meeting quick start button only if SSO is not hidden
+        if (shouldShowDaakiaButton) {
+            buttons.push({
+                iconName: 'phone-in-talk',
+                onPress: startDaakiaMeeting,
+                buttonType: 'opacity',
+                testID: 'channel_header.daakia_meeting.button',
+            });
+        }
 
         // {
         //     iconName: 'magnify',
@@ -313,7 +342,7 @@ const ChannelHeader = ({
         });
 
         return buttons;
-    }, [isPlaybooksEnabled, playbooksActiveRuns, isDMorGM, onChannelQuickAction, openPlaybooksRuns, startDaakiaMeeting]);
+    }, [isPlaybooksEnabled, playbooksActiveRuns, isDMorGM, onChannelQuickAction, openPlaybooksRuns, startDaakiaMeeting, shouldShowDaakiaButton]);
 
     let title = displayName;
     if (isOwnDirectMessage) {
