@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 /*eslint-disable*/
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Platform, useWindowDimensions, View, type LayoutChangeEvent, ImageBackground, Appearance} from 'react-native';
+import {Appearance, ImageBackground, Platform, Text, useWindowDimensions, View, type LayoutChangeEvent} from 'react-native';
+import {useIntl} from 'react-intl';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {Navigation} from 'react-native-navigation';
 import Animated from 'react-native-reanimated';
@@ -24,6 +25,7 @@ import {changeOpacity, makeStyleSheetFromTheme} from '@utils/theme';
 import {typography} from '@utils/typography';
 
 import Form from './form';
+import LinkSent from './link_sent';
 import LoginOptionsSeparator from './login_options_separator';
 import SsoOptions from './sso_options';
 
@@ -73,6 +75,19 @@ const getStyles = makeStyleSheetFromTheme((theme: Theme) => ({
         marginBottom: 12,
         ...typography('Body', 200, 'Regular'),
     },
+    linkSentContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        paddingHorizontal: 24,
+    },
+    linkSentTitle: {
+        ...typography('Heading', 1000, 'SemiBold'),
+        color: theme.centerChannelColor,
+    },
+    linkSentDescription: {
+        ...typography('Body', 200, 'Regular'),
+        color: changeOpacity(theme.centerChannelColor, 0.72),
+    },
 }));
 
 const AnimatedSafeArea = Animated.createAnimatedComponent(SafeAreaView);
@@ -87,17 +102,12 @@ const LoginOptions = ({
     const dimensions = useWindowDimensions();
     const defaultHeaderHeight = useDefaultHeaderHeight();
     const isTablet = useIsTablet();
+    const intl = useIntl();
     const [contentFillScreen, setContentFillScreen] = useState(false);
+    const [magicLinkSent, setMagicLinkSent] = useState(false);
     const numberSSOs = useMemo(() => {
         return Object.values(ssoOptions).filter((v) => v.enabled).length;
     }, [ssoOptions]);
-
-    // Check if only OpenID is enabled
-    const isOnlyOpenIdEnabled = useMemo(() => {
-        const enabledSSOs = Object.values(ssoOptions).filter((v) => v.enabled);
-        return enabledSSOs.length === 1 && ssoOptions[Sso.OPENID]?.enabled;
-    }, [ssoOptions]);
-
     const description = useMemo(() => {
         if (hasLoginForm) {
             return (
@@ -194,6 +204,20 @@ const LoginOptions = ({
         );
     }
 
+    if (magicLinkSent) {
+        return (
+            <View style={styles.linkSentContainer}>
+                <LinkSent/>
+                <Text style={styles.linkSentTitle}>
+                    {intl.formatMessage({id: 'login.magic_link.link.sent.title', defaultMessage: 'We sent you a link to login'})}
+                </Text>
+                <Text style={styles.linkSentDescription}>
+                    {intl.formatMessage({id: 'login.magic_link.link.sent.description', defaultMessage: 'Please check your email for the link to login. Your link will expire in 5 minutes.'})}
+                </Text>
+            </View>
+        );
+    }
+
     return (
         <View
             style={styles.flex}
@@ -223,40 +247,31 @@ const LoginOptions = ({
                         onLayout={onLayout}
                         style={styles.centered}
                     >
-                        {isOnlyOpenIdEnabled ? (
-                            <DaakiaOpenIdLogin
-                                goToSso={goToSso}
-                                ssoOptions={ssoOptions}
-                                theme={theme}
-                            />
-                        ) : (
-                            <>
-                                {title}
-                                {description}
-                                {hasLoginForm &&
-                                <Form
-                                    config={config}
-                                    extra={extra}
-                                    keyboardAwareRef={keyboardAwareRef}
-                                    license={license}
-                                    launchError={launchError}
-                                    launchType={launchType}
-                                    theme={theme}
-                                    serverDisplayName={serverDisplayName}
-                                    serverUrl={serverUrl}
-                                />
-                                }
-                                {optionsSeparator}
-                                {numberSSOs > 0 &&
-                                <SsoOptions
-                                    goToSso={goToSso}
-                                    ssoOnly={!hasLoginForm}
-                                    ssoOptions={ssoOptions}
-                                    theme={theme}
-                                />
-                                }
-                            </>
-                        )}
+                        {title}
+                        {description}
+                        {hasLoginForm &&
+                        <Form
+                            config={config}
+                            extra={extra}
+                            keyboardAwareRef={keyboardAwareRef}
+                            license={license}
+                            launchError={launchError}
+                            launchType={launchType}
+                            theme={theme}
+                            serverDisplayName={serverDisplayName}
+                            serverUrl={serverUrl}
+                            setMagicLinkSent={setMagicLinkSent}
+                        />
+                        }
+                        {optionsSeparator}
+                        {numberSSOs > 0 &&
+                        <SsoOptions
+                            goToSso={goToSso}
+                            ssoOnly={!hasLoginForm}
+                            ssoOptions={ssoOptions}
+                            theme={theme}
+                        />
+                        }
                     </View>
                 </KeyboardAwareScrollView>
             </AnimatedSafeArea>
