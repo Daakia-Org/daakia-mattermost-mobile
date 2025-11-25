@@ -108,6 +108,12 @@ const LoginOptions = ({
     const numberSSOs = useMemo(() => {
         return Object.values(ssoOptions).filter((v) => v.enabled).length;
     }, [ssoOptions]);
+
+    // Check if only OpenID is enabled
+    const isOnlyOpenIdEnabled = useMemo(() => {
+        const enabledSSOs = Object.values(ssoOptions).filter((v) => v.enabled);
+        return enabledSSOs.length === 1 && ssoOptions[Sso.OPENID]?.enabled;
+    }, [ssoOptions]);
     const description = useMemo(() => {
         if (hasLoginForm) {
             return (
@@ -247,31 +253,41 @@ const LoginOptions = ({
                         onLayout={onLayout}
                         style={styles.centered}
                     >
-                        {title}
-                        {description}
-                        {hasLoginForm &&
-                        <Form
-                            config={config}
-                            extra={extra}
-                            keyboardAwareRef={keyboardAwareRef}
-                            license={license}
-                            launchError={launchError}
-                            launchType={launchType}
-                            theme={theme}
-                            serverDisplayName={serverDisplayName}
-                            serverUrl={serverUrl}
-                            setMagicLinkSent={setMagicLinkSent}
-                        />
-                        }
-                        {optionsSeparator}
-                        {numberSSOs > 0 &&
-                        <SsoOptions
-                            goToSso={goToSso}
-                            ssoOnly={!hasLoginForm}
-                            ssoOptions={ssoOptions}
-                            theme={theme}
-                        />
-                        }
+                        {isOnlyOpenIdEnabled ? (
+                            <DaakiaOpenIdLogin
+                                goToSso={goToSso}
+                                ssoOptions={ssoOptions}
+                                theme={theme}
+                            />
+                        ) : (
+                            <>
+                                {title}
+                                {description}
+                                {hasLoginForm &&
+                                <Form
+                                    config={config}
+                                    extra={extra}
+                                    keyboardAwareRef={keyboardAwareRef}
+                                    license={license}
+                                    launchError={launchError}
+                                    launchType={launchType}
+                                    theme={theme}
+                                    serverDisplayName={serverDisplayName}
+                                    serverUrl={serverUrl}
+                                    setMagicLinkSent={setMagicLinkSent}
+                                />
+                                }
+                                {optionsSeparator}
+                                {numberSSOs > 0 &&
+                                <SsoOptions
+                                    goToSso={goToSso}
+                                    ssoOnly={!hasLoginForm}
+                                    ssoOptions={ssoOptions}
+                                    theme={theme}
+                                />
+                                }
+                            </>
+                        )}
                     </View>
                 </KeyboardAwareScrollView>
             </AnimatedSafeArea>
