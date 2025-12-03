@@ -21,6 +21,7 @@ module.exports = {
                 '@components': './app/components',
                 '@constants': './app/constants',
                 '@context': './app/context',
+                '@daakia_backend_apis': './app/daakia_backend_apis',
                 '@database': './app/database',
                 '@helpers': './app/helpers',
                 '@hooks': './app/hooks',
