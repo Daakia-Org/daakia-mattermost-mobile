@@ -20,6 +20,7 @@ import {logWarning} from '@utils/log';
 
 import SSOAuthentication from './sso_authentication';
 import SSOAuthenticationWithExternalBrowser from './sso_authentication_with_external_browser';
+import SSONativeLogin from './sso_native_login';
 
 import type {LaunchProps} from '@typings/launch';
 import type {AvailableScreens} from '@typings/screens/navigation';
@@ -143,7 +144,15 @@ const SSO = ({
     };
 
     let authentication;
-    if (config.MobileExternalBrowser === 'true') {
+
+    // Use native login (API-only, no browser/WebView) for OpenID SSO
+    if (ssoType === Sso.OPENID) {
+        authentication = (
+            <SSONativeLogin
+                {...props}
+            />
+        );
+    } else if (config.MobileExternalBrowser === 'true') {
         authentication = (
             <SSOAuthenticationWithExternalBrowser
                 {...props}
