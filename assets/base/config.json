@@ -3,10 +3,11 @@
     "AuthUrlSchemeDev": "daakia-dev://",
     "DefaultServerUrl": "https://konnect.daakia.ai",
     "DefaultServerName": "Daakia",
-    "TestServerUrl": "http://localhost:8065",
+    "TestServerUrl": "https://konnect.daakia.ai",
     "AutoSelectServerUrl": true,
 
     "WebsiteURL": "https://konnect.daakia.ai",
+    "BackendApiUrl": "https://api.daakia.co.in",
     "ServerNoticeURL": "https://konnect.daakia.ai",
     "MobileNoticeURL": "https://konnect.daakia.ai",
     "RudderApiKey": "",

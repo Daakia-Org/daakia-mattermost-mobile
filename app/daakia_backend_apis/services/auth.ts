@@ -38,7 +38,9 @@ export interface VerifyOTPResponse {
  * Send OTP to user's email or mobile
  */
 export async function sendOTP(request: SendOTPRequest): Promise<SendOTPResponse> {
-    const response = await fetch(`${API_BASE_URL}${AUTH_ENDPOINTS.SEND_OTP}`, {
+    const url = `${API_BASE_URL}${AUTH_ENDPOINTS.SEND_OTP}`;
+
+    const response = await fetch(url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -47,14 +49,18 @@ export async function sendOTP(request: SendOTPRequest): Promise<SendOTPResponse>
         body: JSON.stringify(request),
     });
 
-    return response.json();
+    const json = await response.json();
+
+    return json;
 }
 
 /**
  * Verify OTP and get Daakia token
  */
 export async function verifyOTP(request: VerifyOTPRequest): Promise<VerifyOTPResponse> {
-    const response = await fetch(`${API_BASE_URL}${AUTH_ENDPOINTS.VERIFY_OTP}`, {
+    const url = `${API_BASE_URL}${AUTH_ENDPOINTS.VERIFY_OTP}`;
+
+    const response = await fetch(url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -63,6 +69,8 @@ export async function verifyOTP(request: VerifyOTPRequest): Promise<VerifyOTPRes
         body: JSON.stringify(request),
     });
 
-    return response.json();
+    const json = await response.json();
+
+    return json;
 }
 

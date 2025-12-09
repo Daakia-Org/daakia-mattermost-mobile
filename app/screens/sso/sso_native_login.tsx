@@ -402,7 +402,8 @@ const SSONativeLogin = ({
                     return;
                 }
 
-                const mmResponse = await fetch(`${serverUrl}/api/v4/daakia/mobile-login`, {
+                const mmLoginUrl = `${serverUrl}/api/v4/daakia/mobile-login`;
+                const mmResponse = await fetch(mmLoginUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -412,12 +413,12 @@ const SSONativeLogin = ({
                     }),
                 });
 
-                if (!mmResponse.ok) {
-                    const errorText = await mmResponse.text();
+                const rawText = await mmResponse.text();
 
+                if (!mmResponse.ok) {
                     let friendlyMessage = 'Failed to login to Mattermost. Please try again.';
                     try {
-                        const mmError = JSON.parse(errorText);
+                        const mmError = JSON.parse(rawText);
                         if (mmError?.message) {
                             friendlyMessage = mmError.message;
                         }
@@ -430,7 +431,14 @@ const SSONativeLogin = ({
                     return;
                 }
 
-                const mmData = await mmResponse.json();
+                let mmData;
+                try {
+                    mmData = JSON.parse(rawText);
+                } catch (e) {
+                    setLoginError('Invalid response from Mattermost');
+                    setLoading(false);
+                    return;
+                }
 
                 if (!mmData.MMAUTHTOKEN || !mmData.MMCSRF) {
                     setLoginError('Invalid response from Mattermost');
@@ -572,7 +580,7 @@ const SSONativeLogin = ({
                 <Text style={styles.subtitle}>
                     {intl.formatMessage({
                         id: 'mobile.login.native_subtitle',
-                        defaultMessage: 'Enter your email or phone number to receive a one-time verification code.',
+                        defaultMessage: 'Enter your email to receive a one-time verification code.',
                     })}
                 </Text>
                 <FloatingTextInput

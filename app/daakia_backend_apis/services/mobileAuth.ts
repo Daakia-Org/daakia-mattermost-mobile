@@ -37,7 +37,9 @@ export interface GenerateMattermostTokenResponse {
  * List organizations for the authenticated user
  */
 export async function listOrganizations(request: ListOrganizationsRequest): Promise<ListOrganizationsResponse> {
-    const response = await fetch(`${API_BASE_URL}${MOBILE_AUTH_ENDPOINTS.LIST_ORGANIZATIONS}`, {
+    const url = `${API_BASE_URL}${MOBILE_AUTH_ENDPOINTS.LIST_ORGANIZATIONS}`;
+
+    const response = await fetch(url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -46,14 +48,16 @@ export async function listOrganizations(request: ListOrganizationsRequest): Prom
         body: JSON.stringify(request),
     });
 
-    return response.json();
+    const json = await response.json();
+    return json;
 }
 
 /**
  * Generate Mattermost authentication token for selected organization
  */
 export async function generateMattermostToken(request: GenerateMattermostTokenRequest): Promise<GenerateMattermostTokenResponse> {
-    const response = await fetch(`${API_BASE_URL}${MOBILE_AUTH_ENDPOINTS.GENERATE_MATTERMOST_TOKEN}`, {
+    const url = `${API_BASE_URL}${MOBILE_AUTH_ENDPOINTS.GENERATE_MATTERMOST_TOKEN}`;
+    const response = await fetch(url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -62,6 +66,7 @@ export async function generateMattermostToken(request: GenerateMattermostTokenRe
         body: JSON.stringify(request),
     });
 
-    return response.json();
+    const json = await response.json();
+    return json;
 }
 
