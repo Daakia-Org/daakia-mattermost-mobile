@@ -224,31 +224,48 @@ if [ -z "$VERSION_NUMBER" ] && [ -z "$BUILD_NUMBER" ]; then
             UPDATE_BUILD=true
             ;;
         4|*)
-            # Auto-increment both
-            if [ "$ANDROID_VERSION" != "unknown" ] && [[ "$ANDROID_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-                # Increment patch version
-                IFS='.' read -ra ADDR <<< "$ANDROID_VERSION"
-                MAJOR=${ADDR[0]}
-                MINOR=${ADDR[1]}
-                PATCH=${ADDR[2]}
+            # Auto-increment both platforms independently (patch +1 and build +1 each)
+            increment_patch() {
+                local v="$1"
+                if ! [[ "$v" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                    echo ""
+                    return
+                fi
+                IFS='.' read -ra ADDR <<< "$v"
+                local MAJOR=${ADDR[0]}
+                local MINOR=${ADDR[1]}
+                local PATCH=${ADDR[2]}
                 PATCH=$((PATCH + 1))
-                VERSION_NUMBER="$MAJOR.$MINOR.$PATCH"
-            else
-                error "Could not determine current version number"
+                echo "$MAJOR.$MINOR.$PATCH"
+            }
+
+            ANDROID_VERSION_NUMBER="$(increment_patch "$ANDROID_VERSION")"
+            IOS_VERSION_NUMBER="$(increment_patch "$IOS_VERSION")"
+
+            if [ -z "$ANDROID_VERSION_NUMBER" ]; then
+                error "Could not determine current Android version number"
             fi
-            
+            if [ -z "$IOS_VERSION_NUMBER" ]; then
+                error "Could not determine current iOS version number"
+            fi
+
             if [ "$ANDROID_BUILD" != "unknown" ] && [[ "$ANDROID_BUILD" =~ ^[0-9]+$ ]]; then
-                BUILD_NUMBER=$((ANDROID_BUILD + 1))
-            elif [ "$IOS_BUILD" != "unknown" ] && [[ "$IOS_BUILD" =~ ^[0-9]+$ ]]; then
-                BUILD_NUMBER=$((IOS_BUILD + 1))
+                ANDROID_BUILD_NUMBER=$((ANDROID_BUILD + 1))
             else
-                error "Could not determine current build number"
+                error "Could not determine current Android build number"
             fi
-            
+
+            if [ "$IOS_BUILD" != "unknown" ] && [[ "$IOS_BUILD" =~ ^[0-9]+$ ]]; then
+                IOS_BUILD_NUMBER=$((IOS_BUILD + 1))
+            else
+                error "Could not determine current iOS build number"
+            fi
+
             UPDATE_VERSION=true
             UPDATE_BUILD=true
-            log "Auto-incrementing version to: $VERSION_NUMBER"
-            log "Auto-incrementing build number to: $BUILD_NUMBER"
+            USE_SPLIT_INCREMENTS=true
+            log "Auto-incrementing Android to: $ANDROID_VERSION_NUMBER / $ANDROID_BUILD_NUMBER"
+            log "Auto-incrementing iOS to: $IOS_VERSION_NUMBER / $IOS_BUILD_NUMBER"
             ;;
     esac
 fi
@@ -285,18 +302,46 @@ fi
 
 # Validate build number
 if [ "$UPDATE_BUILD" = true ]; then
-    if ! [[ "$BUILD_NUMBER" =~ ^[0-9]+$ ]]; then
-        error "Build number must be a positive integer"
+    if [ "${USE_SPLIT_INCREMENTS:-false}" = true ]; then
+        if ! [[ "$ANDROID_BUILD_NUMBER" =~ ^[0-9]+$ ]]; then
+            error "Android build number must be a positive integer"
+        fi
+        if ! [[ "$IOS_BUILD_NUMBER" =~ ^[0-9]+$ ]]; then
+            error "iOS build number must be a positive integer"
+        fi
+    else
+        if ! [[ "$BUILD_NUMBER" =~ ^[0-9]+$ ]]; then
+            error "Build number must be a positive integer"
+        fi
+        ANDROID_BUILD_NUMBER="$BUILD_NUMBER"
+        IOS_BUILD_NUMBER="$BUILD_NUMBER"
     fi
+fi
+
+# Normalize version/build variables for updates
+if [ "$UPDATE_VERSION" = true ]; then
+    if [ "${USE_SPLIT_INCREMENTS:-false}" = true ]; then
+        ANDROID_VERSION_NUMBER="${ANDROID_VERSION_NUMBER}"
+        IOS_VERSION_NUMBER="${IOS_VERSION_NUMBER}"
+    else
+        ANDROID_VERSION_NUMBER="${VERSION_NUMBER}"
+        IOS_VERSION_NUMBER="${VERSION_NUMBER}"
+    fi
+fi
+if [ "$UPDATE_BUILD" = true ] && [ "${USE_SPLIT_INCREMENTS:-false}" != true ]; then
+    ANDROID_BUILD_NUMBER="${BUILD_NUMBER}"
+    IOS_BUILD_NUMBER="${BUILD_NUMBER}"
 fi
 
 echo ""
 log "Updating to:"
 if [ "$UPDATE_VERSION" = true ]; then
-    log "  Version: $VERSION_NUMBER (same for Android and iOS)"
+    log "  Android Version: $ANDROID_VERSION_NUMBER"
+    log "  iOS Version:     $IOS_VERSION_NUMBER"
 fi
 if [ "$UPDATE_BUILD" = true ]; then
-    log "  Build: $BUILD_NUMBER (same for Android and iOS)"
+    log "  Android Build:   $ANDROID_BUILD_NUMBER"
+    log "  iOS Build:       $IOS_BUILD_NUMBER"
 fi
 echo ""
 
@@ -305,17 +350,17 @@ log "Updating Android build.gradle..."
 if [ -f "android/app/build.gradle" ]; then
     if [[ "$OSTYPE" == "darwin"* ]]; then
         if [ "$UPDATE_VERSION" = true ]; then
-            sed -i '' "s/versionName \".*\"/versionName \"$VERSION_NUMBER\"/" android/app/build.gradle
+            sed -i '' "s/versionName \".*\"/versionName \"$ANDROID_VERSION_NUMBER\"/" android/app/build.gradle
         fi
         if [ "$UPDATE_BUILD" = true ]; then
-            sed -i '' "s/versionCode [0-9]*/versionCode $BUILD_NUMBER/" android/app/build.gradle
+            sed -i '' "s/versionCode [0-9]*/versionCode $ANDROID_BUILD_NUMBER/" android/app/build.gradle
         fi
     else
         if [ "$UPDATE_VERSION" = true ]; then
-            sed -i "s/versionName \".*\"/versionName \"$VERSION_NUMBER\"/" android/app/build.gradle
+            sed -i "s/versionName \".*\"/versionName \"$ANDROID_VERSION_NUMBER\"/" android/app/build.gradle
         fi
         if [ "$UPDATE_BUILD" = true ]; then
-            sed -i "s/versionCode [0-9]*/versionCode $BUILD_NUMBER/" android/app/build.gradle
+            sed -i "s/versionCode [0-9]*/versionCode $ANDROID_BUILD_NUMBER/" android/app/build.gradle
         fi
     fi
     log "✓ Updated android/app/build.gradle"
@@ -335,16 +380,16 @@ if [ "$UPDATE_VERSION" = true ] || [ "$UPDATE_BUILD" = true ]; then
         if [ -f "$plist" ]; then
             if [[ "$OSTYPE" == "darwin"* ]]; then
                 if [ "$UPDATE_VERSION" = true ]; then
-                    /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION_NUMBER" "$plist" 2>/dev/null || true
+                    /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $IOS_VERSION_NUMBER" "$plist" 2>/dev/null || true
                 fi
                 if [ "$UPDATE_BUILD" = true ]; then
-                    /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$plist" 2>/dev/null || true
+                    /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $IOS_BUILD_NUMBER" "$plist" 2>/dev/null || true
                 fi
                 
                 # Fallback to awk if PlistBuddy fails
                 if [ "$UPDATE_VERSION" = true ]; then
-                    if ! /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$plist" 2>/dev/null | grep -q "$VERSION_NUMBER"; then
-                        awk -v version="$VERSION_NUMBER" '
+                    if ! /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$plist" 2>/dev/null | grep -q "$IOS_VERSION_NUMBER"; then
+                        awk -v version="$IOS_VERSION_NUMBER" '
                             /CFBundleShortVersionString/ {
                                 getline
                                 sub(/<string>.*<\/string>/, "<string>" version "</string>")
@@ -355,8 +400,8 @@ if [ "$UPDATE_VERSION" = true ] || [ "$UPDATE_BUILD" = true ]; then
                 fi
                 
                 if [ "$UPDATE_BUILD" = true ]; then
-                    if ! /usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$plist" 2>/dev/null | grep -q "$BUILD_NUMBER"; then
-                        awk -v build="$BUILD_NUMBER" '
+                    if ! /usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$plist" 2>/dev/null | grep -q "$IOS_BUILD_NUMBER"; then
+                        awk -v build="$IOS_BUILD_NUMBER" '
                             /CFBundleVersion/ {
                                 getline
                                 sub(/<string>.*<\/string>/, "<string>" build "</string>")
@@ -368,10 +413,10 @@ if [ "$UPDATE_VERSION" = true ] || [ "$UPDATE_BUILD" = true ]; then
             else
                 # Linux fallback (sed-based)
                 if [ "$UPDATE_VERSION" = true ]; then
-                    sed -i "/CFBundleShortVersionString/,+1s/<string>.*<\/string>/<string>$VERSION_NUMBER<\/string>/" "$plist"
+                    sed -i "/CFBundleShortVersionString/,+1s/<string>.*<\/string>/<string>$IOS_VERSION_NUMBER<\/string>/" "$plist"
                 fi
                 if [ "$UPDATE_BUILD" = true ]; then
-                    sed -i "/CFBundleVersion/,+1s/<string>.*<\/string>/<string>$BUILD_NUMBER<\/string>/" "$plist"
+                    sed -i "/CFBundleVersion/,+1s/<string>.*<\/string>/<string>$IOS_BUILD_NUMBER<\/string>/" "$plist"
                 fi
             fi
             log "✓ Updated $(basename $plist)"
@@ -389,10 +434,12 @@ log "✓ All version numbers updated successfully!"
 echo ""
 log "Summary:"
 if [ "$UPDATE_VERSION" = true ]; then
-    log "  Version: $VERSION_NUMBER (same for Android and iOS)"
+    log "  Android Version: $ANDROID_VERSION_NUMBER"
+    log "  iOS Version:     $IOS_VERSION_NUMBER"
 fi
 if [ "$UPDATE_BUILD" = true ]; then
-    log "  Build: $BUILD_NUMBER (same for Android and iOS)"
+    log "  Android Build:   $ANDROID_BUILD_NUMBER"
+    log "  iOS Build:       $IOS_BUILD_NUMBER"
 fi
 echo ""
 log "Files updated:"
