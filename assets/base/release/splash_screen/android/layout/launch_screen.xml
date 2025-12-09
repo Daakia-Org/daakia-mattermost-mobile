@@ -20,8 +20,8 @@
 
     <ImageView
         android:id="@+id/splashIcon"
-        android:layout_width="96dp"
-        android:layout_height="96dp"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
         android:contentDescription="@string/app_name"
         android:src="@drawable/splash"
         app:layout_constraintBottom_toBottomOf="parent"

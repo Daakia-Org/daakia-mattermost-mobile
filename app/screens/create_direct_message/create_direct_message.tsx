@@ -318,7 +318,6 @@ export default function CreateDirectMessage({
                 />
             </View>
             <ServerUserList
-                currentUserId={currentUserId}
                 handleSelectProfile={handleSelectProfile}
                 selectedIds={selectedIds}
                 term={term}
